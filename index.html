@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Scrambled — how to solve every cube</title>
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="description" content="Learn to solve every twisty puzzle — 2x2 through 7x7, Pyraminx, Skewb, Megaminx, and Square-1 — with video tutorials, algorithm references, and a built-in speedcube timer.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Scrambled — how to solve every cube">
+<meta property="og:description" content="Video tutorials, algorithm references, and a built-in speedcube timer for every twisty puzzle.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Scrambled — how to solve every cube">
+<meta name="twitter:description" content="Video tutorials, algorithm references, and a built-in speedcube timer for every twisty puzzle.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2314161b%22/%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%23f0c419%22/%3E%3Crect%20x%3D%2212.25%22%20y%3D%223%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%234caf6d%22/%3E%3Crect%20x%3D%2221.5%22%20y%3D%223%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%23df3f3f%22/%3E%3Crect%20x%3D%223%22%20y%3D%2212.25%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%233c6fd9%22/%3E%3Crect%20x%3D%2212.25%22%20y%3D%2212.25%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%23f2f3f4%22/%3E%3Crect%20x%3D%2221.5%22%20y%3D%2212.25%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%23ef8536%22/%3E%3Crect%20x%3D%223%22%20y%3D%2221.5%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%23df3f3f%22/%3E%3Crect%20x%3D%2212.25%22%20y%3D%2221.5%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%233c6fd9%22/%3E%3Crect%20x%3D%2221.5%22%20y%3D%2221.5%22%20width%3D%227.5%22%20height%3D%227.5%22%20rx%3D%221.5%22%20fill%3D%22%234caf6d%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -42,7 +50,21 @@
     --text-faint: #939aa6;
     --bg-glow: #ffffff;
   }
-  html.large-text .main{ font-size:112%; }
+  html.large-text .page-title{ font-size:32px; }
+  html.large-text .page-sub{ font-size:16px; }
+  html.large-text h2.section-h{ font-size:22px; }
+  html.large-text h3.sub-h{ font-size:17px; }
+  html.large-text p{ font-size:16px; }
+  html.large-text .callout{ font-size:15px; }
+  html.large-text .notation-card .desc{ font-size:14px; }
+  html.large-text .step-title{ font-size:16.5px; }
+  html.large-text .step p{ font-size:15px; }
+  html.large-text .alg-name{ font-size:14px; }
+  html.large-text .alg-code{ font-size:15px; }
+  html.large-text .stat-label{ font-size:11px; }
+  html.large-text .stat-value{ font-size:20px; }
+  html.large-text .kbd-hints{ font-size:13px; }
+  html.large-text .mod-table{ font-size:15px; }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
@@ -181,6 +203,23 @@
   .alg-fav-btn:hover{ color:var(--gold); border-color:var(--gold); }
   .alg-fav-btn.faved{ color:var(--gold); border-color:var(--gold); }
 
+  @media (max-width: 860px){
+    .alg-copy-btn, .alg-fav-btn{ padding:8px 12px; font-size:14px; }
+    .pattern-use{ padding:10px 16px !important; }
+    .nav-item{ padding:12px 10px; }
+    #jumpTop, #printPage, #fontSizeToggle, .fab-copy-algs{
+      width:46px !important; height:46px !important; font-size:16px !important;
+      bottom:calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    #jumpTop{ right:16px !important; }
+    #printPage{ right:70px !important; }
+    #fontSizeToggle{ right:124px !important; }
+    .fab-copy-algs{ right:178px !important; }
+  }
+  @media (max-width: 480px){
+    #fontSizeToggle, .fab-copy-algs{ display:none !important; }
+  }
+
   /* algorithm sheet (OLL/PLL grids) */
   .alg-toolbar{
     display:flex; gap:8px; align-items:center; margin:14px 0; flex-wrap:wrap;
@@ -238,9 +277,9 @@
 <body>
 <div class="shell">
   <nav class="sidebar" id="sidebar">
-    <div class="brand">Scrambled<span>.</span><button id="themeToggle" title="Toggle light/dark theme" style="float:right; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-faint); font-size:12px; padding:3px 7px; cursor:pointer;">☾</button></div>
+    <div class="brand">Scrambled<span>.</span><button id="themeToggle" title="Toggle light/dark theme" aria-label="Toggle light/dark theme" style="float:right; background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-faint); font-size:12px; padding:3px 7px; cursor:pointer;">☾</button></div>
     <div class="brand-tag">how to solve every twisty puzzle</div>
-    <input type="text" id="sidebarSearch" placeholder="Search pages..." style="width:100%; margin:6px 0 10px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 10px; font-size:12px; font-family:var(--font-body);">
+    <input type="text" id="sidebarSearch" placeholder="Search pages..." aria-label="Search site pages" style="width:100%; margin:6px 0 10px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 10px; font-size:12px; font-family:var(--font-body);">
     <div class="nav-group-title">Practice</div>
     <div class="nav-item" data-page="timer"><span class="dot" style="background:var(--gold)"></span>Timer</div>
     <div class="nav-group-title">Start here</div>
@@ -257,16 +296,24 @@
     <div class="nav-item" data-page="megaminx"><span class="dot" style="background:#e0668e"></span>Megaminx</div>
     <div class="nav-item" data-page="square1"><span class="dot" style="background:#4a7fd6"></span>Square-1</div>
     <div class="nav-group-title">&nbsp;</div>
+    <div class="nav-item" data-page="notes"><span class="dot" style="background:#4a7fd6"></span>Notes</div>
     <div class="nav-item" data-page="favorites"><span class="dot" style="background:var(--gold)"></span>Favorites</div>
     <div class="nav-item" data-page="credits"><span class="dot" style="background:var(--text-faint)"></span>Credits</div>
+    <div class="nav-group-title">Backup everything</div>
+    <div style="display:flex; gap:6px; padding:0 2px;">
+      <button id="exportAllBtn" style="flex:1; background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); border-radius:7px; padding:7px 4px; font-size:11px; font-weight:700; cursor:pointer; font-family:var(--font-body);">Export</button>
+      <button id="importAllBtn" style="flex:1; background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim); border-radius:7px; padding:7px 4px; font-size:11px; font-weight:700; cursor:pointer; font-family:var(--font-body);">Import</button>
+      <input type="file" id="importAllFile" accept="application/json" style="display:none;">
+    </div>
+    <div style="font-size:10px; color:var(--text-faint); padding:6px 2px 0;">Timer + Notes + Favorites, all in one file</div>
   </nav>
 
   <main class="main" id="main"></main>
-  <button id="jumpTop" title="Jump to top" style="position:fixed; bottom:24px; right:24px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:16px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:15;">↑</button>
-  <button id="printPage" title="Print this page" style="position:fixed; bottom:24px; right:74px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:15px; z-index:15;">⎙</button>
-  <button id="fontSizeToggle" title="Larger text" style="position:fixed; bottom:24px; right:124px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:14px; font-weight:800; z-index:15;">A+</button>
-  <button id="copyAllAlgs" title="Copy all algorithms on this page" style="position:fixed; bottom:24px; right:174px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:15px; z-index:15; display:none;">⧉</button>
-  <button id="sidebarCollapseToggle" title="Collapse sidebar" style="position:fixed; top:20px; left:20px; width:32px; height:32px; border-radius:8px; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:13px; z-index:16; display:none;">☰</button>
+  <button id="jumpTop" title="Jump to top" aria-label="Jump to top of page" style="position:fixed; bottom:24px; right:24px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:16px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:15;">↑</button>
+  <button id="printPage" title="Print this page" aria-label="Print this page" style="position:fixed; bottom:24px; right:74px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:15px; z-index:15;">⎙</button>
+  <button id="fontSizeToggle" title="Larger text" aria-label="Toggle larger text size" style="position:fixed; bottom:24px; right:124px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:14px; font-weight:800; z-index:15;">A+</button>
+  <button id="copyAllAlgs" title="Copy all algorithms on this page" aria-label="Copy all algorithms on this page" class="fab-copy-algs" style="position:fixed; bottom:24px; right:174px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:15px; z-index:15; display:none;">⧉</button>
+  <button id="sidebarCollapseToggle" title="Collapse sidebar" aria-label="Toggle sidebar visibility" style="position:fixed; top:20px; left:20px; width:32px; height:32px; border-radius:8px; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:13px; z-index:16; display:none;">☰</button>
 </div>
 
 <script>
@@ -403,7 +450,7 @@ const PYRAMINX_LL = [
 function algLine(name, code){
   const safeCode = code.replace(/"/g, '&quot;');
   const safeName = name.replace(/"/g, '&quot;');
-  return `<div class="alg-line"><span class="alg-name">${name}</span><span class="alg-code">${code}</span><button class="alg-fav-btn" data-fav-name="${safeName}" data-fav-code="${safeCode}" title="Save to favorites">☆</button><button class="alg-copy-btn" data-copy-alg="${safeCode}" title="Copy algorithm">⧉</button></div>`;
+  return `<div class="alg-line"><span class="alg-name">${name}</span><span class="alg-code">${code}</span><button class="alg-fav-btn" data-fav-name="${safeName}" data-fav-code="${safeCode}" title="Save to favorites" aria-label="Save ${safeName} to favorites">☆</button><button class="alg-copy-btn" data-copy-alg="${safeCode}" title="Copy algorithm" aria-label="Copy ${safeName} algorithm">⧉</button></div>`;
 }
 function stepBlock(num, title, body){
   return `<div class="step"><div class="step-title"><span class="step-num">${num}</span>${title}</div><p>${body}</p></div>`;
@@ -542,10 +589,27 @@ function stageHeading(icon, title){
 }
 
 function videoEmbed(id, title){
-  return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid var(--border);background:var(--surface);margin:10px 0;">
-    <iframe src="https://www.youtube.com/embed/${id}" title="${title}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-  </div>`;
+  const uid = 'vid_' + id + '_' + Math.random().toString(36).slice(2,7);
+  const safeTitle = title.replace(/"/g, '&quot;');
+  return `<div class="video-facade" id="${uid}" data-vid="${id}" data-title="${safeTitle}" onclick="window.loadVideoFacade('${uid}')" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid var(--border);background:#000 center/cover no-repeat;background-image:url('https://i.ytimg.com/vi/${id}/hqdefault.jpg');cursor:pointer;margin:10px 0 4px;">
+    <div style="position:absolute; inset:0; background:rgba(0,0,0,.2); display:flex; align-items:center; justify-content:center;">
+      <div style="width:60px; height:60px; border-radius:50%; background:rgba(20,22,27,.85); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(0,0,0,.4);">
+        <div style="width:0; height:0; border-style:solid; border-width:11px 0 11px 18px; border-color:transparent transparent transparent #fff; margin-left:4px;"></div>
+      </div>
+    </div>
+  </div>
+  <a href="https://www.youtube.com/watch?v=${id}" target="_blank" rel="noopener" style="display:inline-block; font-size:11.5px; color:var(--text-faint); margin:0 0 14px; text-decoration:none;">Video not loading? Watch on YouTube ↗</a>`;
 }
+
+window.loadVideoFacade = function(uid){
+  const el = document.getElementById(uid);
+  if(!el) return;
+  const id = el.getAttribute('data-vid');
+  const title = el.getAttribute('data-title');
+  el.outerHTML = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid var(--border);background:var(--surface);margin:10px 0 4px;">
+    <iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1" title="${title}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  </div>`;
+};
 
 function creditLine(channel, videoTitle, url){
   return `<div class="alg-line" style="justify-content:flex-start; gap:14px;"><span class="alg-name" style="min-width:110px;">${channel}</span><a href="${url}" target="_blank" style="font-size:13px; color:var(--text-dim);">${videoTitle}</a></div>`;
@@ -746,29 +810,18 @@ function page2x2(){
 
 function page3x3(){
   const beginner = `
-  <p>The classic beginner method — no CFOP terminology needed to follow along, just watch and repeat.</p>
-  ${videoEmbed('7Ron6MN45LY', "How To Solve The 3x3 Rubik's Cube — J Perm")}
-  ${creditLine('J Perm', "How To Solve The 3x3 Rubik's Cube", 'https://www.youtube.com/watch?v=7Ron6MN45LY')}
-  <p style="margin-top:16px;">Want to see a full solve using this method before you try it yourself?</p>
-  ${videoEmbed('DepFQpJ5KqU', 'Beginner Method Example Solve — J Perm')}
-  ${creditLine('J Perm', 'Beginner Method Example Solve', 'https://www.youtube.com/watch?v=DepFQpJ5KqU')}
+  <p>A clear, easy-to-follow beginner method — just watch and repeat.</p>
+  ${videoEmbed('E7-0GYMCwyQ', "How to Solve a Rubik's Cube | The Easiest Tutorial — Cubastic")}
+  ${creditLine('Cubastic', "How to Solve a Rubik's Cube | The Easiest Tutorial", 'https://www.youtube.com/watch?v=E7-0GYMCwyQ')}
   <h3 class="sub-h">Formulas to memorize</h3>
-  <p>15 total if you count every 2-Look OLL/PLL case — but the core method only needs the first 4, reused across the whole solve.</p>
-  <p style="margin-top:10px;"><b>The core 4:</b></p>
-  ${algLine("Corner insert", "R' D' R D  (repeat until solved)")}
-  ${algLine("2nd layer — insert right", "U R U' R' U' F' U F")}
-  ${algLine("2nd layer — insert left", "U' L' U L U F U' F'")}
-  ${algLine("Cross (last layer)", "F R U R' U' F'")}
-  ${algLine("Corner cycle (last layer)", "U R U' L' U R' U' L")}
-  <p style="margin-top:10px;"><b>Optional — 2-Look OLL/PLL, for a faster last layer:</b></p>
-  <div id="beg3x3Edges"></div>
-  <div id="beg3x3Corners"></div>
-  ${algLine("Aa (corners, counter-clockwise)", "x R' U R' D2 R U' R' D2 R2 x'")}
-  ${algLine("Ab (corners, clockwise)", "x' R2 D2 R U R' D2 R U' R x")}
-  ${algLine("Ua (3 edges, counter-clockwise)", "M2 U M U2 M' U M")}
-  ${algLine("Ub (3 edges, clockwise)", "M2 U' M U2 M' U' M")}
-  ${algLine("H (2 pairs of opposite edges)", "M2 U M2 U2 M2 U M2")}
-  ${algLine("Z (2 pairs of adjacent edges)", "M2 U2 M U' M2 U' M2 U' M")}
+  <p>The 2 core tricks, plus how to use them to orient the last layer depending on the pattern you see.</p>
+  <p style="margin-top:10px;"><b>The 2 core tricks:</b></p>
+  ${algLine("Magic", "R U R' U'  (repeat until solved)")}
+  ${algLine("Lefty Magic", "L' U' L U  (repeat until solved)")}
+  <p style="margin-top:10px;"><b>Other easier algorithms for cross:</b></p>
+  ${algLine("Line", "F R U R' U' F'")}
+  ${algLine("9 o'clock", "F (R U R' U')2 F'")}
+  ${algLine("Dot", "Line alg, then align and do the 9 o'clock alg")}
   `;
   const advanced = `
   <p>Full CFOP, taught stage by stage — Cross, F2L, OLL, PLL. F2L is the biggest leap from the beginner method, so start there.</p>
@@ -974,6 +1027,23 @@ function pageSquare1(){
   `;
 }
 
+function pageNotes(){
+  return `
+  <h1 class="page-title">Notes</h1>
+  <p class="page-sub">Your own space for algorithms and notes — saved automatically in this browser as you type.</p>
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+    <button class="drawer-btn" id="notesCopyBtn">Copy all</button>
+    <button class="drawer-btn" id="notesClearBtn">Clear</button>
+    <span id="notesSavedIndicator" style="font-size:11px; color:var(--text-faint); margin-left:auto;"></span>
+  </div>
+  <textarea id="notesTextarea" placeholder="Write anything here — algorithms, reminders, cases you keep forgetting...
+
+Example:
+T-perm: R U R' U' R' F R2 U' R' U' R U R' F'
+Remember: on Skewb, always check for the 4th corner before starting the last layer." style="width:100%; min-height:60vh; background:var(--surface); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:var(--font-display); font-size:13.5px; line-height:1.6; padding:16px; resize:vertical; outline:none;"></textarea>
+  `;
+}
+
 function pageFavorites(){
   const favs = getFavorites();
   if(!favs.length){
@@ -995,6 +1065,7 @@ function pageCredits(){
   <h1 class="page-title">Credits</h1>
   <p class="page-sub">Every video embedded on this site was made by someone else — full credit to the creators below. Clicking a title opens the video on YouTube.</p>
   <div class="times-list" style="max-height:none;">
+    ${creditLine('Cubastic', "How to Solve a Rubik's Cube | The Easiest Tutorial", 'https://www.youtube.com/watch?v=E7-0GYMCwyQ')}
     ${creditLine('J Perm', "How To Solve The 3x3 Rubik's Cube", 'https://www.youtube.com/watch?v=7Ron6MN45LY')}
     ${creditLine('J Perm', 'Beginner Method Example Solve (3x3)', 'https://www.youtube.com/watch?v=DepFQpJ5KqU')}
     ${creditLine('J Perm', 'Advanced Cross', 'https://www.youtube.com/watch?v=IWXpkfwimo0')}
@@ -1042,6 +1113,7 @@ const PAGES = {
   skewb: pageSkewb,
   megaminx: pageMegaminx,
   square1: pageSquare1,
+  notes: pageNotes,
   favorites: pageFavorites,
   credits: pageCredits
 };
@@ -1101,6 +1173,72 @@ window.addEventListener('message', (ev)=>{
   }
 });
 
+function downloadFile(content, filename, mime){
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportAllData(){
+  let timerData = null;
+  try{ const raw = localStorage.getItem(TIMER_STORE_KEY); if(raw) timerData = JSON.parse(raw); }catch(e){}
+  const bundle = {
+    exportedFrom: 'Scrambled',
+    exportedAt: new Date().toISOString(),
+    timer: timerData,
+    notes: localStorage.getItem('learn-notes') || '',
+    favorites: (()=>{ try{ return JSON.parse(localStorage.getItem('learn-favorites') || '[]'); }catch(e){ return []; } })()
+  };
+  downloadFile(JSON.stringify(bundle, null, 2), 'scrambled-backup.json', 'application/json');
+}
+
+function importAllData(parsed){
+  if(parsed.timer){
+    try{ localStorage.setItem(TIMER_STORE_KEY, JSON.stringify(parsed.timer)); }catch(e){}
+  }
+  if(typeof parsed.notes === 'string'){
+    try{ localStorage.setItem('learn-notes', parsed.notes); }catch(e){}
+  }
+  if(Array.isArray(parsed.favorites)){
+    try{ localStorage.setItem('learn-favorites', JSON.stringify(parsed.favorites)); }catch(e){}
+  }
+  sendTimerInit();
+  const currentId = document.querySelector('.nav-item.active')?.getAttribute('data-page');
+  if(currentId === 'notes' || currentId === 'favorites') renderPage(currentId);
+}
+
+document.getElementById('exportAllBtn').addEventListener('click', exportAllData);
+document.getElementById('importAllBtn').addEventListener('click', ()=>{
+  document.getElementById('importAllFile').click();
+});
+document.getElementById('importAllFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed || typeof parsed !== 'object'){
+        alert("That file doesn't look like a Scrambled backup.");
+        return;
+      }
+      if(confirm('Import this backup? It will replace your current Timer data, Notes, and Favorites.')){
+        importAllData(parsed);
+        alert('Backup imported successfully.');
+      }
+    }catch(err){
+      alert('Could not read that file.');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
 function renderPage(id){
   if(id === 'timer'){
     main.className = 'main flush';
@@ -1115,6 +1253,7 @@ function renderPage(id){
     if(id === '3x3') wire3x3Extras();
     if(id === 'pyraminx') wirePyraminx();
     if(id === 'favorites') wireFavoritesPage();
+    if(id === 'notes') wireNotesPage();
     if(id === 'megaminx') wireMegaminx();
     markFavButtons();
     main.querySelectorAll('[data-goto]').forEach(el=>{
@@ -1157,6 +1296,46 @@ function wireMegaminx(){
   if(cornersEl) cornersEl.innerHTML = TWO_LOOK_OLL_CORNERS.map(c=>algLine(c.name, c.alg)).join('');
 }
 
+function wireNotesPage(){
+  const ta = document.getElementById('notesTextarea');
+  const indicator = document.getElementById('notesSavedIndicator');
+  if(!ta) return;
+  try{ ta.value = localStorage.getItem('learn-notes') || ''; }catch(e){}
+
+  let saveTimer = null;
+  ta.addEventListener('input', ()=>{
+    indicator.textContent = 'Saving...';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{
+      try{ localStorage.setItem('learn-notes', ta.value); }catch(e){}
+      indicator.textContent = 'Saved';
+      setTimeout(()=>{ if(indicator.textContent === 'Saved') indicator.textContent = ''; }, 1500);
+    }, 400);
+  });
+
+  document.getElementById('notesCopyBtn').addEventListener('click', ()=>{
+    const btn = document.getElementById('notesCopyBtn');
+    const onDone = ()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(()=>{ btn.textContent = orig; }, 900);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(onDone).catch(()=>{});
+    } else {
+      ta.select();
+      try{ document.execCommand('copy'); onDone(); }catch(e){}
+    }
+  });
+
+  document.getElementById('notesClearBtn').addEventListener('click', ()=>{
+    if(!ta.value.trim() || confirm('Clear all your notes? This cannot be undone.')){
+      ta.value = '';
+      try{ localStorage.setItem('learn-notes', ''); }catch(e){}
+    }
+  });
+}
+
 function wireFavoritesPage(){
   const el = document.getElementById('favoritesList');
   if(!el) return;
@@ -1168,18 +1347,6 @@ function wireFavoritesPage(){
 function wire3x3Extras(){
   const f2lEl = document.getElementById('f2lList');
   if(f2lEl) f2lEl.innerHTML = F2L_BASIC.map(c=>algLine(c.c, c.a)).join('');
-
-  const edgesEl = document.getElementById('twoLookEdges');
-  if(edgesEl) edgesEl.innerHTML = TWO_LOOK_OLL_EDGES.map(c=>algLine(c.name, c.alg)).join('');
-
-  const cornersEl = document.getElementById('twoLookCorners');
-  if(cornersEl) cornersEl.innerHTML = TWO_LOOK_OLL_CORNERS.map(c=>algLine(c.name, c.alg)).join('');
-
-  const begEdgesEl = document.getElementById('beg3x3Edges');
-  if(begEdgesEl) begEdgesEl.innerHTML = TWO_LOOK_OLL_EDGES.map(c=>algLine(c.name, c.alg)).join('');
-
-  const begCornersEl = document.getElementById('beg3x3Corners');
-  if(begCornersEl) begCornersEl.innerHTML = TWO_LOOK_OLL_CORNERS.map(c=>algLine(c.name, c.alg)).join('');
 
   const pllEl = document.getElementById('pllGrid');
   function renderPll(filter){
