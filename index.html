@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Scrambled — how to solve many fun and intrusting puzzles!</title>
+<title>Scrambled — how to solve every cube</title>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="description" content="Learn to solve every twisty puzzle — 2x2 through 7x7, Pyraminx, Skewb, Megaminx, and Square-1 — with video tutorials, algorithm references, and a built-in speedcube timer.">
 <meta property="og:type" content="website">
@@ -202,6 +202,16 @@
   }
   .alg-fav-btn:hover{ color:var(--gold); border-color:var(--gold); }
   .alg-fav-btn.faved{ color:var(--gold); border-color:var(--gold); }
+
+  .notes-btn{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text-dim);
+    border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:700; cursor:pointer;
+    font-family:var(--font-body); transition:color .15s, border-color .15s;
+  }
+  .notes-btn:hover{ color:var(--accent); border-color:var(--accent); }
+  .notes-btn.primary{ background:var(--accent); border-color:var(--accent); color:#0f1712; }
+  .notes-btn.primary:hover{ color:#0f1712; filter:brightness(1.08); }
+  .card-delete-btn:hover{ color:var(--red) !important; border-color:var(--red) !important; }
 
   @media (max-width: 860px){
     .alg-copy-btn, .alg-fav-btn{ padding:8px 12px; font-size:14px; }
@@ -1032,16 +1042,30 @@ function pageNotes(){
   return `
   <h1 class="page-title">Notes</h1>
   <p class="page-sub">Your own space for algorithms and notes — saved automatically in this browser as you type.</p>
+
+  <h3 class="sub-h">Algorithm cards</h3>
+  <p style="color:var(--text-dim); font-size:13px; margin:0 0 14px;">Add a name, the algorithm, and an optional note for anything you want to keep track of separately.</p>
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:18px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+      <input type="text" id="cardNameInput" placeholder="Name (e.g. T-perm)" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px; font-family:var(--font-body);">
+      <input type="text" id="cardAlgInput" placeholder="Algorithm (e.g. R U R' U')" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px; font-family:var(--font-display);">
+    </div>
+    <textarea id="cardDescInput" placeholder="Description / note (optional)" style="width:100%; min-height:60px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px; font-family:var(--font-body); resize:vertical; margin-bottom:10px;"></textarea>
+    <button class="notes-btn primary" id="cardAddBtn">Add card</button>
+  </div>
+  <div id="cardsList"></div>
+
+  <h3 class="sub-h" style="margin-top:32px;">Freeform notes</h3>
   <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-    <button class="drawer-btn" id="notesCopyBtn">Copy all</button>
-    <button class="drawer-btn" id="notesClearBtn">Clear</button>
+    <button class="notes-btn" id="notesCopyBtn">Copy all</button>
+    <button class="notes-btn" id="notesClearBtn">Clear</button>
     <span id="notesSavedIndicator" style="font-size:11px; color:var(--text-faint); margin-left:auto;"></span>
   </div>
   <textarea id="notesTextarea" placeholder="Write anything here — algorithms, reminders, cases you keep forgetting...
 
 Example:
 T-perm: R U R' U' R' F R2 U' R' U' R U R' F'
-Remember: on Skewb, always check for the 4th corner before starting the last layer." style="width:100%; min-height:60vh; background:var(--surface); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:var(--font-display); font-size:13.5px; line-height:1.6; padding:16px; resize:vertical; outline:none;"></textarea>
+Remember: on Skewb, always check for the 4th corner before starting the last layer." style="width:100%; min-height:40vh; background:var(--surface); border:1px solid var(--border); border-radius:12px; color:var(--text); font-family:var(--font-display); font-size:13.5px; line-height:1.6; padding:16px; resize:vertical; outline:none;"></textarea>
   `;
 }
 
@@ -1193,7 +1217,8 @@ function exportAllData(){
     exportedAt: new Date().toISOString(),
     timer: timerData,
     notes: localStorage.getItem('learn-notes') || '',
-    favorites: (()=>{ try{ return JSON.parse(localStorage.getItem('learn-favorites') || '[]'); }catch(e){ return []; } })()
+    favorites: (()=>{ try{ return JSON.parse(localStorage.getItem('learn-favorites') || '[]'); }catch(e){ return []; } })(),
+    algCards: (()=>{ try{ return JSON.parse(localStorage.getItem('learn-alg-cards') || '[]'); }catch(e){ return []; } })()
   };
   downloadFile(JSON.stringify(bundle, null, 2), 'scrambled-backup.json', 'application/json');
 }
@@ -1207,6 +1232,9 @@ function importAllData(parsed){
   }
   if(Array.isArray(parsed.favorites)){
     try{ localStorage.setItem('learn-favorites', JSON.stringify(parsed.favorites)); }catch(e){}
+  }
+  if(Array.isArray(parsed.algCards)){
+    try{ localStorage.setItem('learn-alg-cards', JSON.stringify(parsed.algCards)); }catch(e){}
   }
   sendTimerInit();
   const currentId = document.querySelector('.nav-item.active')?.getAttribute('data-page');
@@ -1320,7 +1348,97 @@ function wireMegaminx(){
   if(cornersEl) cornersEl.innerHTML = TWO_LOOK_OLL_CORNERS.map(c=>algLine(c.name, c.alg)).join('');
 }
 
+function getAlgCards(){
+  try{ return JSON.parse(localStorage.getItem('learn-alg-cards') || '[]'); }catch(e){ return []; }
+}
+function saveAlgCards(cards){
+  try{ localStorage.setItem('learn-alg-cards', JSON.stringify(cards)); }catch(e){}
+}
+
+function renderAlgCards(){
+  const el = document.getElementById('cardsList');
+  if(!el) return;
+  const cards = getAlgCards();
+  if(!cards.length){
+    el.innerHTML = '<div class="empty-note">No cards yet — add one above.</div>';
+    return;
+  }
+  el.innerHTML = cards.map(c => `
+    <div class="alg-line" style="flex-direction:column; align-items:stretch; gap:6px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <span class="alg-name" style="font-size:13px; min-width:0;">${c.name || '(untitled)'}</span>
+        <div style="display:flex; gap:6px; flex-shrink:0;">
+          <button class="alg-copy-btn" data-card-copy="${c.id}" title="Copy algorithm" aria-label="Copy ${c.name || 'algorithm'}">⧉</button>
+          <button class="alg-copy-btn card-delete-btn" data-card-delete="${c.id}" title="Delete card" aria-label="Delete ${c.name || 'card'}">✕</button>
+        </div>
+      </div>
+      <span class="alg-code">${c.alg || ''}</span>
+      ${c.desc ? `<span style="font-size:12px; color:var(--text-dim); line-height:1.5;">${c.desc}</span>` : ''}
+    </div>
+  `).join('');
+
+  el.querySelectorAll('[data-card-copy]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const card = getAlgCards().find(c => c.id === btn.getAttribute('data-card-copy'));
+      if(!card) return;
+      const text = card.alg || '';
+      const onDone = ()=>{
+        const orig = btn.textContent;
+        btn.textContent = '✓';
+        setTimeout(()=>{ btn.textContent = orig; }, 900);
+      };
+      const fallbackCopy = ()=>{
+        try{
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          onDone();
+        }catch(err){}
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(onDone).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+    });
+  });
+
+  el.querySelectorAll('[data-card-delete]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.getAttribute('data-card-delete');
+      const cards = getAlgCards().filter(c => c.id !== id);
+      saveAlgCards(cards);
+      renderAlgCards();
+    });
+  });
+}
+
 function wireNotesPage(){
+  renderAlgCards();
+
+  const nameInput = document.getElementById('cardNameInput');
+  const algInput = document.getElementById('cardAlgInput');
+  const descInput = document.getElementById('cardDescInput');
+  document.getElementById('cardAddBtn').addEventListener('click', ()=>{
+    const name = nameInput.value.trim();
+    const alg = algInput.value.trim();
+    const desc = descInput.value.trim();
+    if(!name && !alg){
+      alert('Add at least a name or an algorithm.');
+      return;
+    }
+    const cards = getAlgCards();
+    cards.push({ id: 'card_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), name, alg, desc });
+    saveAlgCards(cards);
+    nameInput.value = ''; algInput.value = ''; descInput.value = '';
+    renderAlgCards();
+  });
+
   const ta = document.getElementById('notesTextarea');
   const indicator = document.getElementById('notesSavedIndicator');
   if(!ta) return;
@@ -1344,11 +1462,17 @@ function wireNotesPage(){
       btn.textContent = 'Copied!';
       setTimeout(()=>{ btn.textContent = orig; }, 900);
     };
+    const fallbackCopy = ()=>{
+      try{
+        ta.select();
+        document.execCommand('copy');
+        onDone();
+      }catch(err){}
+    };
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(ta.value).then(onDone).catch(()=>{});
+      navigator.clipboard.writeText(ta.value).then(onDone).catch(fallbackCopy);
     } else {
-      ta.select();
-      try{ document.execCommand('copy'); onDone(); }catch(e){}
+      fallbackCopy();
     }
   });
 
@@ -1360,11 +1484,44 @@ function wireNotesPage(){
   });
 }
 
+function setFavoriteNickname(code, nickname){
+  const favs = getFavorites();
+  const fav = favs.find(f => f.code === code);
+  if(fav){
+    fav.nickname = nickname;
+    saveFavorites(favs);
+  }
+}
+
 function wireFavoritesPage(){
   const el = document.getElementById('favoritesList');
   if(!el) return;
   const favs = getFavorites();
-  el.innerHTML = favs.map(f=>algLine(f.name, f.code)).join('');
+  el.innerHTML = favs.map(f => {
+    const safeCode = (f.code || '').replace(/"/g, '&quot;');
+    const displayName = f.nickname ? f.nickname : f.name;
+    const subLabel = f.nickname ? `<div style="font-size:10.5px; color:var(--text-faint); margin-top:1px;">${f.name}</div>` : '';
+    return `<div class="alg-line" style="align-items:flex-start;">
+      <span class="alg-name" style="display:flex; flex-direction:column;"><span>${displayName}</span>${subLabel}</span>
+      <span class="alg-code">${f.code}</span>
+      <button class="alg-copy-btn nickname-edit-btn" data-nickname-code="${safeCode}" data-nickname-name="${f.name}" title="Rename this favorite" aria-label="Give ${displayName} a custom nickname">✎</button>
+      <button class="alg-fav-btn" data-fav-name="${f.name}" data-fav-code="${safeCode}" title="Remove from favorites">★</button>
+      <button class="alg-copy-btn" data-copy-alg="${safeCode}" title="Copy algorithm">⧉</button>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('[data-nickname-code]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const code = btn.getAttribute('data-nickname-code');
+      const originalName = btn.getAttribute('data-nickname-name');
+      const current = getFavorites().find(f => f.code === code);
+      const input = prompt('Give this algorithm your own nickname (leave blank to use "' + originalName + '"):', current && current.nickname ? current.nickname : '');
+      if(input === null) return;
+      setFavoriteNickname(code, input.trim());
+      wireFavoritesPage();
+    });
+  });
+
   markFavButtons();
 }
 
