@@ -310,6 +310,7 @@
     <div class="nav-item" data-page="notes"><span class="dot" style="background:#4a7fd6"></span>Notes</div>
     <div class="nav-item" data-page="favorites"><span class="dot" style="background:var(--gold)"></span>Favorites</div>
     <div class="nav-item" data-page="competitions"><span class="dot" style="background:#e0668e"></span>Competitions</div>
+    <div class="nav-item" data-page="admin"><span class="dot" style="background:#4a7fd6"></span>Admin</div>
     <div class="nav-item" data-page="credits"><span class="dot" style="background:var(--text-faint)"></span>Credits</div>
     <div class="nav-group-title">Backup everything</div>
     <div style="display:flex; gap:6px; padding:0 2px;">
@@ -1181,6 +1182,48 @@ function pageCompetitions(){
   `;
 }
 
+function pageAdmin(){
+  return `
+  <h1 class="page-title">Admin</h1>
+  <div id="adminLoginBox" style="max-width:320px;">
+    <p class="page-sub">Enter the admin password to continue.</p>
+    <input type="password" id="adminPasswordInput" placeholder="Password" style="width:100%; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:10px;">
+    <button class="notes-btn primary" id="adminLoginBtn">Unlock</button>
+    <div id="adminLoginError" style="color:var(--red); font-size:12px; margin-top:8px;"></div>
+  </div>
+
+  <div id="adminPanelBox" style="display:none;">
+    <p class="page-sub">Local admin tools for this browser.</p>
+
+    <h3 class="sub-h">Storage overview</h3>
+    <div id="adminStorageStats" style="margin-bottom:24px;"></div>
+
+    <h3 class="sub-h">Danger zone</h3>
+    <p style="color:var(--text-dim); font-size:13px; margin:0 0 12px;">Each of these permanently deletes data from this browser. There's a confirmation before anything happens, but there's no undo after that.</p>
+    <div style="display:flex; flex-direction:column; gap:8px; max-width:340px; margin-bottom:24px;">
+      <button class="notes-btn" id="adminClearTimer" style="color:var(--red); border-color:var(--red);">Clear all Timer data (solves, sessions, PBs, badges)</button>
+      <button class="notes-btn" id="adminClearNotes" style="color:var(--red); border-color:var(--red);">Clear Notes</button>
+      <button class="notes-btn" id="adminClearFavorites" style="color:var(--red); border-color:var(--red);">Clear Favorites</button>
+      <button class="notes-btn" id="adminClearCards" style="color:var(--red); border-color:var(--red);">Clear Algorithm Cards</button>
+      <button class="notes-btn" id="adminClearEverything" style="color:var(--red); border-color:var(--red); font-weight:800;">Clear EVERYTHING</button>
+    </div>
+
+    <h3 class="sub-h">Raw data</h3>
+    <button class="notes-btn" id="adminViewRaw" style="margin-bottom:12px;">View raw storage keys</button>
+    <pre id="adminRawOutput" style="display:none; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:11px; color:var(--text-dim); max-height:240px; overflow:auto; white-space:pre-wrap; word-break:break-all;"></pre>
+
+    <h3 class="sub-h" style="margin-top:24px;">Change admin password</h3>
+    <div style="display:flex; gap:8px; max-width:340px; margin-bottom:24px;">
+      <input type="password" id="adminNewPassword" placeholder="New password" style="flex:1; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px;">
+      <button class="notes-btn" id="adminChangePasswordBtn">Save</button>
+    </div>
+    <div id="adminPasswordStatus" style="font-size:12px; color:var(--text-faint);"></div>
+
+    <button class="notes-btn" id="adminLockBtn" style="margin-top:8px;">Lock admin panel</button>
+  </div>
+  `;
+}
+
 function pageCredits(){
   return `
   <h1 class="page-title">Credits</h1>
@@ -1237,6 +1280,7 @@ const PAGES = {
   notes: pageNotes,
   favorites: pageFavorites,
   competitions: pageCompetitions,
+  admin: pageAdmin,
   credits: pageCredits
 };
 
@@ -1434,6 +1478,7 @@ function renderPage(id){
     if(id === 'favorites') wireFavoritesPage();
     if(id === 'notes') wireNotesPage();
     if(id === 'competitions') wireCompetitionsPage();
+    if(id === 'admin') wireAdminPage();
     if(id === 'megaminx') wireMegaminx();
     markFavButtons();
     main.querySelectorAll('[data-goto]').forEach(el=>{
@@ -1655,6 +1700,157 @@ function setFavoriteNickname(code, nickname){
     fav.nickname = nickname;
     saveFavorites(favs);
   }
+}
+
+function wireAdminPage(){
+  const ADMIN_PW_KEY = 'learn-admin-password';
+  function currentPassword(){
+    return localStorage.getItem(ADMIN_PW_KEY) || '2014';
+  }
+
+  const loginBox = document.getElementById('adminLoginBox');
+  const panelBox = document.getElementById('adminPanelBox');
+
+  function showPanel(){
+    loginBox.style.display = 'none';
+    panelBox.style.display = 'block';
+    renderStorageStats();
+  }
+  function showLogin(){
+    loginBox.style.display = 'block';
+    panelBox.style.display = 'none';
+    document.getElementById('adminPasswordInput').value = '';
+    document.getElementById('adminLoginError').textContent = '';
+  }
+
+  document.getElementById('adminLoginBtn').addEventListener('click', ()=>{
+    const entered = document.getElementById('adminPasswordInput').value;
+    if(entered === currentPassword()){
+      showPanel();
+    } else {
+      document.getElementById('adminLoginError').textContent = 'Incorrect password.';
+    }
+  });
+  document.getElementById('adminPasswordInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') document.getElementById('adminLoginBtn').click();
+  });
+  document.getElementById('adminLockBtn').addEventListener('click', showLogin);
+
+  function byteSize(str){
+    if(!str) return 0;
+    return new Blob([str]).size;
+  }
+  function fmtBytes(n){
+    if(n < 1024) return n + ' B';
+    return (n/1024).toFixed(1) + ' KB';
+  }
+
+  function renderStorageStats(){
+    const el = document.getElementById('adminStorageStats');
+    let timerCount = 0, timerSize = 0;
+    try{
+      const raw = localStorage.getItem(TIMER_STORE_KEY);
+      timerSize = byteSize(raw);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        Object.values(parsed.sessions || {}).forEach(sessList=>{
+          sessList.forEach(s=> timerCount += (s.entries || []).length);
+        });
+      }
+    }catch(e){}
+
+    let notesSize = byteSize(localStorage.getItem('learn-notes'));
+    let favCount = 0, favSize = byteSize(localStorage.getItem('learn-favorites'));
+    try{ favCount = JSON.parse(localStorage.getItem('learn-favorites') || '[]').length; }catch(e){}
+    let cardCount = 0, cardSize = byteSize(localStorage.getItem('learn-alg-cards'));
+    try{ cardCount = JSON.parse(localStorage.getItem('learn-alg-cards') || '[]').length; }catch(e){}
+
+    let totalSize = 0;
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      totalSize += byteSize(k) + byteSize(localStorage.getItem(k));
+    }
+
+    el.innerHTML = `
+      <div style="font-size:13px; line-height:2; color:var(--text-dim);">
+        <div>Timer: <strong style="color:var(--text);">${timerCount}</strong> solves recorded (${fmtBytes(timerSize)})</div>
+        <div>Notes: ${fmtBytes(notesSize)}</div>
+        <div>Favorites: <strong style="color:var(--text);">${favCount}</strong> saved (${fmtBytes(favSize)})</div>
+        <div>Algorithm Cards: <strong style="color:var(--text);">${cardCount}</strong> saved (${fmtBytes(cardSize)})</div>
+        <div style="margin-top:6px; padding-top:6px; border-top:1px solid var(--border);">Total localStorage used: <strong style="color:var(--text);">${fmtBytes(totalSize)}</strong> across <strong style="color:var(--text);">${localStorage.length}</strong> keys</div>
+      </div>
+    `;
+  }
+
+  function clearTimerData(){
+    localStorage.removeItem(TIMER_STORE_KEY);
+    sendTimerInit();
+  }
+
+  document.getElementById('adminClearTimer').addEventListener('click', ()=>{
+    if(!confirm('Permanently delete all Timer data — every solve, session, PB, and badge? This cannot be undone.')) return;
+    clearTimerData();
+    renderStorageStats();
+  });
+  document.getElementById('adminClearNotes').addEventListener('click', ()=>{
+    if(!confirm('Permanently delete all Notes (both freeform notes and Algorithm Cards)?')) return;
+    localStorage.removeItem('learn-notes');
+    localStorage.removeItem('learn-alg-cards');
+    renderStorageStats();
+  });
+  document.getElementById('adminClearFavorites').addEventListener('click', ()=>{
+    if(!confirm('Permanently delete all Favorites?')) return;
+    localStorage.removeItem('learn-favorites');
+    renderStorageStats();
+  });
+  document.getElementById('adminClearCards').addEventListener('click', ()=>{
+    if(!confirm('Permanently delete all Algorithm Cards?')) return;
+    localStorage.removeItem('learn-alg-cards');
+    renderStorageStats();
+  });
+  document.getElementById('adminClearEverything').addEventListener('click', ()=>{
+    if(!confirm('Permanently delete EVERYTHING — all Timer data, Notes, Favorites, and Algorithm Cards? This cannot be undone.')) return;
+    if(!confirm('Really sure? This wipes this browsers entire data for the site.')) return;
+    clearTimerData();
+    localStorage.removeItem('learn-notes');
+    localStorage.removeItem('learn-favorites');
+    localStorage.removeItem('learn-alg-cards');
+    renderStorageStats();
+  });
+
+  document.getElementById('adminViewRaw').addEventListener('click', ()=>{
+    const out = document.getElementById('adminRawOutput');
+    const showing = out.style.display !== 'none';
+    if(showing){
+      out.style.display = 'none';
+      return;
+    }
+    let lines = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      const v = localStorage.getItem(k);
+      const preview = v && v.length > 300 ? v.slice(0,300) + '… (' + v.length + ' chars total)' : v;
+      lines.push(k + ':\n' + preview);
+    }
+    out.textContent = lines.join('\n\n');
+    out.style.display = 'block';
+  });
+
+  document.getElementById('adminChangePasswordBtn').addEventListener('click', ()=>{
+    const input = document.getElementById('adminNewPassword');
+    const val = input.value.trim();
+    const statusEl = document.getElementById('adminPasswordStatus');
+    if(!val){
+      statusEl.textContent = 'Enter a new password first.';
+      return;
+    }
+    localStorage.setItem(ADMIN_PW_KEY, val);
+    input.value = '';
+    statusEl.textContent = 'Password updated.';
+    setTimeout(()=>{ statusEl.textContent = ''; }, 2000);
+  });
+
+  showLogin();
 }
 
 function wireCompetitionsPage(){
