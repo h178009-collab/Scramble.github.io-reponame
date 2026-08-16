@@ -123,8 +123,12 @@
   .nav-item .dot{ width:8px; height:8px; border-radius:2px; flex-shrink:0; }
 
   /* main */
-  .main{ padding:32px 40px 80px; max-width:900px; }
-  @media (max-width: 860px){ .main{ padding:24px 18px 60px; } }
+  .content-area{ padding:32px 40px 0; max-width:900px; }
+  .main{ padding:0 0 80px; max-width:900px; }
+  @media (max-width: 860px){
+    .content-area{ padding:24px 18px 0; }
+    .main{ padding:0 0 60px; }
+  }
   .main.flush{ padding:0; max-width:none; height:100vh; }
   .main.flush iframe{ display:block; width:100%; height:100%; border:none; }
 
@@ -276,8 +280,8 @@
   #jumpTop.show{ opacity:1; pointer-events:auto; }
 
   @media print{
-    .sidebar, #jumpTop, .method-tabs, iframe, .toc-chip-row{ display:none !important; }
-    .main{ max-width:none; padding:0; }
+    .sidebar, #jumpTop, .method-tabs, iframe, .toc-chip-row, #funFactBanner{ display:none !important; }
+    .main, .content-area{ max-width:none; padding:0; }
     body{ background:#fff; color:#000; }
     .panel, .step, .alg-line, .diag-card, .callout{ border:1px solid #999 !important; background:#fff !important; color:#000 !important; }
     .alg-code, .alg-name, p, h1, h2, h3{ color:#000 !important; }
@@ -329,17 +333,19 @@
     <div id="shoppingRegionLink" style="font-size:11px; padding:8px 2px 0; color:var(--text-faint);"></div>
   </nav>
 
-  <div id="funFactBanner" style="display:none; margin:0 0 14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; align-items:center; justify-content:space-between; gap:12px;">
-    <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-      <span style="font-size:18px; flex-shrink:0;">🎲</span>
-      <span id="funFactText" style="font-size:12.5px; color:var(--text-dim); line-height:1.4;"></span>
+  <div class="content-area">
+    <div id="funFactBanner" style="display:none; margin:0 0 14px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; align-items:center; justify-content:space-between; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+        <span style="font-size:18px; flex-shrink:0;">🎲</span>
+        <span id="funFactText" style="font-size:12.5px; color:var(--text-dim); line-height:1.4;"></span>
+      </div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <button id="funFactNext" title="Next fact" aria-label="Show another fun fact" style="background:none; border:1px solid var(--border); color:var(--text-faint); border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">Next</button>
+        <button id="funFactClose" title="Dismiss" aria-label="Dismiss banner" style="background:none; border:none; color:var(--text-faint); font-size:15px; cursor:pointer; padding:0 4px; line-height:1;">✕</button>
+      </div>
     </div>
-    <div style="display:flex; gap:6px; flex-shrink:0;">
-      <button id="funFactNext" title="Next fact" aria-label="Show another fun fact" style="background:none; border:1px solid var(--border); color:var(--text-faint); border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;">Next</button>
-      <button id="funFactClose" title="Dismiss" aria-label="Dismiss banner" style="background:none; border:none; color:var(--text-faint); font-size:15px; cursor:pointer; padding:0 4px; line-height:1;">✕</button>
-    </div>
+    <main class="main" id="main"></main>
   </div>
-  <main class="main" id="main"></main>
   <button id="jumpTop" title="Jump to top" aria-label="Jump to top of page" style="position:fixed; bottom:24px; right:24px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:16px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:15;">↑</button>
   <button id="printPage" title="Print this page" aria-label="Print this page" style="position:fixed; bottom:24px; right:74px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:15px; z-index:15;">⎙</button>
   <button id="fontSizeToggle" title="Larger text" aria-label="Toggle larger text size" style="position:fixed; bottom:24px; right:124px; width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); cursor:pointer; font-size:14px; font-weight:800; z-index:15;">A+</button>
