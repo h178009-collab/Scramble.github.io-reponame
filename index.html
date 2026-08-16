@@ -130,6 +130,29 @@
     .main{ padding:0 0 60px; }
   }
   .main.flush{ padding:0; max-width:none; height:100vh; }
+
+  #funFactBanner{
+    background: linear-gradient(120deg, rgba(76,175,109,.16), rgba(76,175,109,.05) 60%), var(--surface);
+    border: 1px solid rgba(76,175,109,.35) !important;
+    box-shadow: 0 0 0px rgba(76,175,109,0);
+    transition: box-shadow .5s ease, border-color .5s ease;
+  }
+  #funFactBanner.glow-pulse{
+    animation: factGlowPulse 900ms ease-out;
+  }
+  @keyframes factGlowPulse{
+    0%{ box-shadow: 0 0 0px rgba(76,175,109,0); border-color: rgba(76,175,109,.35); }
+    30%{ box-shadow: 0 0 22px rgba(76,175,109,.55), 0 0 4px rgba(76,175,109,.4); border-color: rgba(76,175,109,.9); }
+    100%{ box-shadow: 0 0 0px rgba(76,175,109,0); border-color: rgba(76,175,109,.35); }
+  }
+  #funFactText{ display:inline-block; }
+  #funFactText.text-fade-pulse{
+    animation: factTextFade 450ms ease;
+  }
+  @keyframes factTextFade{
+    0%{ opacity:0; transform:translateY(2px); }
+    100%{ opacity:1; transform:translateY(0); }
+  }
   .main.flush iframe{ display:block; width:100%; height:100%; border:none; }
 
   .page-title{ font-size:28px; font-weight:800; letter-spacing:-.5px; margin:0 0 6px; }
@@ -1214,6 +1237,24 @@ function pageAdmin(){
     <h3 class="sub-h">Storage overview</h3>
     <div id="adminStorageStats" style="margin-bottom:24px;"></div>
 
+    <h3 class="sub-h">Site banner</h3>
+    <p style="color:var(--text-dim); font-size:13px; margin:0 0 4px;">Set a custom message to show in the banner at the top of every page instead of the rotating fun facts.</p>
+    <p style="color:var(--text-faint); font-size:11px; margin:0 0 12px;">Heads up: since this site has no backend, a banner set here only shows up in this browser — it will not broadcast to other visitors.</p>
+    <div style="max-width:480px; margin-bottom:8px;">
+      <textarea id="adminBannerInput" placeholder="Banner message (leave blank to clear)" style="width:100%; min-height:70px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px; font-family:var(--font-body); resize:vertical; margin-bottom:8px;"></textarea>
+      <select id="adminBannerIcon" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:8px 10px; font-size:13px; margin-bottom:8px;">
+        <option value="📢">📢 Announcement</option>
+        <option value="⚠️">⚠️ Warning</option>
+        <option value="🎉">🎉 Celebration</option>
+        <option value="🛠️">🛠️ Maintenance</option>
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <button class="notes-btn primary" id="adminBannerSave">Set banner</button>
+      <button class="notes-btn" id="adminBannerClear">Clear banner</button>
+    </div>
+    <div id="adminBannerStatus" style="font-size:12px; color:var(--text-faint); margin-bottom:24px;"></div>
+
     <h3 class="sub-h">Danger zone</h3>
     <p style="color:var(--text-dim); font-size:13px; margin:0 0 12px;">Each of these permanently deletes data from this browser. There's a confirmation before anything happens, but there's no undo after that.</p>
     <div style="display:flex; flex-direction:column; gap:8px; max-width:340px; margin-bottom:24px;">
@@ -1312,32 +1353,104 @@ const CUBE_FUN_FACTS = [
   "The World Cube Association (WCA) is the official body that sanctions cubing competitions worldwide.",
   "There are alternative methods to CFOP, like Roux and ZZ, that some speedsolvers prefer.",
   "Blindfolded solving (BLD) requires memorizing the entire scramble before making a single move.",
-  "Multi-Blind (MBLD) solvers memorize and solve many cubes blindfolded in a single attempt."
+  "Multi-Blind (MBLD) solvers memorize and solve many cubes blindfolded in a single attempt.",
+  "Jessica Fridrich, a Czech speedcuber, is the namesake of CFOP — she published the method online in 1997.",
+  "Full CFOP uses 57 OLL algorithms and 21 PLL algorithms to solve the last layer in two steps.",
+  "F2L (First Two Layers) has 41 recognized cases when solved intuitively rather than layer by layer.",
+  "A standard 3x3 has 8 corner pieces, 12 edge pieces, and 6 fixed center pieces.",
+  "WCA competitions use standardized scramble software so every competitor in a round gets an equally fair scramble.",
+  "An official competition solve is typically the average of 5 attempts, dropping the best and worst times.",
+  "Speedcubers often lubricate their cubes to reduce friction and allow faster, smoother turning.",
+  "Megaminx is a dodecahedron-shaped puzzle with 12 pentagonal faces instead of a cube's 6.",
+  "Square-1 keeps the same overall shape while scrambled, but the layers can be shifted at odd angles.",
+  "Pyraminx is a tetrahedral puzzle where the 4 corner tips can be twisted independently of the rest of the solve."
 ];
 
 (function(){
   const banner = document.getElementById('funFactBanner');
   const textEl = document.getElementById('funFactText');
+  const iconEl = banner.querySelector('span[style*="font-size:18px"]');
+  const nextBtn = document.getElementById('funFactNext');
   let lastIdx = -1;
+
+  let rotateTimer = null;
 
   function showRandomFact(){
     let idx;
     do { idx = Math.floor(Math.random() * CUBE_FUN_FACTS.length); } while(idx === lastIdx && CUBE_FUN_FACTS.length > 1);
     lastIdx = idx;
     textEl.textContent = CUBE_FUN_FACTS[idx];
+    triggerGlow();
   }
 
-  try{
-    if(localStorage.getItem('learn-funfact-dismissed') !== 'true'){
-      showRandomFact();
-      banner.style.display = 'flex';
-    }
-  }catch(e){}
+  function triggerGlow(){
+    banner.classList.remove('glow-pulse');
+    textEl.classList.remove('text-fade-pulse');
+    void banner.offsetWidth;
+    banner.classList.add('glow-pulse');
+    textEl.classList.add('text-fade-pulse');
+  }
 
-  document.getElementById('funFactNext').addEventListener('click', showRandomFact);
+  function stopRotation(){
+    if(rotateTimer){ clearInterval(rotateTimer); rotateTimer = null; }
+  }
+  function startRotation(){
+    stopRotation();
+    rotateTimer = setInterval(showRandomFact, 5000);
+  }
+
+  function refresh(){
+    let adminMsg = null, adminIcon = '📢';
+    try{
+      adminMsg = localStorage.getItem('learn-admin-banner-message');
+      adminIcon = localStorage.getItem('learn-admin-banner-icon') || '📢';
+    }catch(e){}
+
+    if(adminMsg){
+      stopRotation();
+      let dismissed = false;
+      try{ dismissed = localStorage.getItem('learn-admin-banner-dismissed') === 'true'; }catch(e){}
+      if(dismissed){
+        banner.style.display = 'none';
+        return;
+      }
+      iconEl.textContent = adminIcon;
+      textEl.textContent = adminMsg;
+      nextBtn.style.display = 'none';
+      banner.style.display = 'flex';
+      triggerGlow();
+      return;
+    }
+
+    nextBtn.style.display = '';
+    iconEl.textContent = '🎲';
+    try{
+      if(localStorage.getItem('learn-funfact-dismissed') !== 'true'){
+        showRandomFact();
+        banner.style.display = 'flex';
+        startRotation();
+      } else {
+        banner.style.display = 'none';
+        stopRotation();
+      }
+    }catch(e){}
+  }
+
+  window.refreshSiteBanner = refresh;
+  refresh();
+
+  nextBtn.addEventListener('click', ()=>{
+    showRandomFact();
+    startRotation();
+  });
   document.getElementById('funFactClose').addEventListener('click', ()=>{
     banner.style.display = 'none';
-    try{ localStorage.setItem('learn-funfact-dismissed', 'true'); }catch(e){}
+    stopRotation();
+    try{
+      let adminMsg = localStorage.getItem('learn-admin-banner-message');
+      if(adminMsg) localStorage.setItem('learn-admin-banner-dismissed', 'true');
+      else localStorage.setItem('learn-funfact-dismissed', 'true');
+    }catch(e){}
   });
 })();
 
@@ -1770,6 +1883,10 @@ function wireAdminPage(){
     loginBox.style.display = 'none';
     panelBox.style.display = 'block';
     renderStorageStats();
+    try{
+      document.getElementById('adminBannerInput').value = localStorage.getItem('learn-admin-banner-message') || '';
+      document.getElementById('adminBannerIcon').value = localStorage.getItem('learn-admin-banner-icon') || '📢';
+    }catch(e){}
   }
   function showLogin(){
     loginBox.style.display = 'block';
@@ -1902,6 +2019,32 @@ function wireAdminPage(){
     localStorage.setItem(ADMIN_PW_KEY, val);
     input.value = '';
     statusEl.textContent = 'Password updated.';
+    setTimeout(()=>{ statusEl.textContent = ''; }, 2000);
+  });
+
+  document.getElementById('adminBannerSave').addEventListener('click', ()=>{
+    const msg = document.getElementById('adminBannerInput').value.trim();
+    const icon = document.getElementById('adminBannerIcon').value;
+    const statusEl = document.getElementById('adminBannerStatus');
+    if(!msg){
+      statusEl.textContent = 'Enter a message first, or use Clear banner to remove it.';
+      return;
+    }
+    localStorage.setItem('learn-admin-banner-message', msg);
+    localStorage.setItem('learn-admin-banner-icon', icon);
+    localStorage.removeItem('learn-admin-banner-dismissed');
+    if(window.refreshSiteBanner) window.refreshSiteBanner();
+    statusEl.textContent = 'Banner set — it will show on every page until cleared or dismissed.';
+    setTimeout(()=>{ statusEl.textContent = ''; }, 2500);
+  });
+  document.getElementById('adminBannerClear').addEventListener('click', ()=>{
+    localStorage.removeItem('learn-admin-banner-message');
+    localStorage.removeItem('learn-admin-banner-icon');
+    localStorage.removeItem('learn-admin-banner-dismissed');
+    document.getElementById('adminBannerInput').value = '';
+    if(window.refreshSiteBanner) window.refreshSiteBanner();
+    const statusEl = document.getElementById('adminBannerStatus');
+    statusEl.textContent = 'Banner cleared.';
     setTimeout(()=>{ statusEl.textContent = ''; }, 2000);
   });
 
