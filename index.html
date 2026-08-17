@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Scrambled — how to solve every cube</title>
+<title>Scrambled — how to solve every twisty puzzle</title>
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="description" content="Learn to solve every twisty puzzle — 2x2 through 7x7, Pyraminx, Skewb, Megaminx, and Square-1 — with video tutorials, algorithm references, and a built-in speedcube timer.">
 <meta property="og:type" content="website">
@@ -123,13 +123,14 @@
   .nav-item .dot{ width:8px; height:8px; border-radius:2px; flex-shrink:0; }
 
   /* main */
-  .content-area{ padding:32px 40px 0; max-width:900px; }
+  .content-area{ padding:32px 40px 0; max-width:900px; margin:0 auto; }
   .main{ padding:0 0 80px; max-width:900px; }
   @media (max-width: 860px){
     .content-area{ padding:24px 18px 0; }
     .main{ padding:0 0 60px; }
   }
   .main.flush{ padding:0; max-width:none; height:100vh; }
+  .content-area.flush-wide{ max-width:1280px; }
 
   #funFactBanner{
     background: linear-gradient(120deg, rgba(76,175,109,.16), rgba(76,175,109,.05) 60%), var(--surface);
@@ -1648,14 +1649,17 @@ document.getElementById('importAllFile').addEventListener('change', (e)=>{
 });
 
 function renderPage(id){
+  const contentAreaEl = document.querySelector('.content-area');
   if(id === 'timer'){
     main.className = 'main flush';
+    if(contentAreaEl) contentAreaEl.classList.add('flush-wide');
     main.innerHTML = '<iframe id="timerFrame" title="Sub cube timer"></iframe>';
     timerFrameRef = document.getElementById('timerFrame');
     timerFrameRef.srcdoc = b64DecodeUnicode(TIMER_HTML_B64);
     timerFrameRef.addEventListener('load', sendTimerInit);
   } else {
     main.className = 'main';
+    if(contentAreaEl) contentAreaEl.classList.remove('flush-wide');
     main.innerHTML = PAGES[id]() + renderPageNav(id);
     wireMethodTabs();
     if(id === '3x3') wire3x3Extras();
