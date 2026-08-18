@@ -1360,6 +1360,8 @@ const PAGES = {
 
 const main = document.getElementById('main');
 
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxJNgTiMs-qO8N7wZRD0EtupJBqdIDONrkkta-juczbR5QNWpU5NyCV3ymxEBbXtMzxsg/exec';
+
 const CUBE_FUN_FACTS = [
   "The Rubik's Cube was invented in 1974 by Ernő Rubik, a Hungarian architecture professor.",
   "It was originally called the 'Magic Cube' before being renamed Rubik's Cube for its international release.",
@@ -1391,6 +1393,8 @@ const CUBE_FUN_FACTS = [
   let lastIdx = -1;
 
   let rotateTimer = null;
+  let pollTimer = null;
+  let lastKnownBannerTimestamp = null;
 
   function showRandomFact(){
     let idx;
@@ -1416,29 +1420,18 @@ const CUBE_FUN_FACTS = [
     rotateTimer = setInterval(showRandomFact, 5000);
   }
 
-  function refresh(){
-    let adminMsg = null, adminIcon = '📢';
+  async function fetchSiteBanner(){
     try{
-      adminMsg = localStorage.getItem('learn-admin-banner-message');
-      adminIcon = localStorage.getItem('learn-admin-banner-icon') || '📢';
-    }catch(e){}
-
-    if(adminMsg){
-      stopRotation();
-      let dismissed = false;
-      try{ dismissed = localStorage.getItem('learn-admin-banner-dismissed') === 'true'; }catch(e){}
-      if(dismissed){
-        banner.style.display = 'none';
-        return;
-      }
-      iconEl.textContent = adminIcon;
-      textEl.textContent = adminMsg;
-      nextBtn.style.display = 'none';
-      banner.style.display = 'flex';
-      triggerGlow();
-      return;
+      const res = await fetch(BACKEND_URL + '?action=getBanner');
+      if(!res.ok) return null;
+      const data = await res.json();
+      return data && data.message ? data : null;
+    }catch(err){
+      return null;
     }
+  }
 
+  function showFunFacts(){
     nextBtn.style.display = '';
     iconEl.textContent = '🎲';
     try{
@@ -1453,8 +1446,32 @@ const CUBE_FUN_FACTS = [
     }catch(e){}
   }
 
+  async function refresh(){
+    const siteBanner = await fetchSiteBanner();
+
+    if(siteBanner){
+      stopRotation();
+      lastKnownBannerTimestamp = siteBanner.timestamp;
+      let dismissedTimestamp = null;
+      try{ dismissedTimestamp = localStorage.getItem('learn-site-banner-dismissed-ts'); }catch(e){}
+      if(dismissedTimestamp && dismissedTimestamp === siteBanner.timestamp){
+        banner.style.display = 'none';
+        return;
+      }
+      iconEl.textContent = siteBanner.icon || '📢';
+      textEl.textContent = siteBanner.message;
+      nextBtn.style.display = 'none';
+      banner.style.display = 'flex';
+      triggerGlow();
+      return;
+    }
+
+    showFunFacts();
+  }
+
   window.refreshSiteBanner = refresh;
   refresh();
+  pollTimer = setInterval(refresh, 60000);
 
   nextBtn.addEventListener('click', ()=>{
     showRandomFact();
@@ -1464,8 +1481,7 @@ const CUBE_FUN_FACTS = [
     banner.style.display = 'none';
     stopRotation();
     try{
-      let adminMsg = localStorage.getItem('learn-admin-banner-message');
-      if(adminMsg) localStorage.setItem('learn-admin-banner-dismissed', 'true');
+      if(lastKnownBannerTimestamp) localStorage.setItem('learn-site-banner-dismissed-ts', lastKnownBannerTimestamp);
       else localStorage.setItem('learn-funfact-dismissed', 'true');
     }catch(e){}
   });
@@ -1960,10 +1976,14 @@ function wireAdminPage(){
     loginBox.style.display = 'none';
     panelBox.style.display = 'block';
     renderStorageStats();
-    try{
-      document.getElementById('adminBannerInput').value = localStorage.getItem('learn-admin-banner-message') || '';
-      document.getElementById('adminBannerIcon').value = localStorage.getItem('learn-admin-banner-icon') || '📢';
-    }catch(e){}
+    document.getElementById('adminBannerInput').value = '';
+    document.getElementById('adminBannerIcon').value = '📢';
+    fetch(BACKEND_URL + '?action=getBanner').then(r=>r.json()).then(data=>{
+      if(data && data.message){
+        document.getElementById('adminBannerInput').value = data.message;
+        document.getElementById('adminBannerIcon').value = data.icon || '📢';
+      }
+    }).catch(()=>{});
   }
   function showLogin(){
     loginBox.style.display = 'block';
@@ -2099,30 +2119,55 @@ function wireAdminPage(){
     setTimeout(()=>{ statusEl.textContent = ''; }, 2000);
   });
 
-  document.getElementById('adminBannerSave').addEventListener('click', ()=>{
+  document.getElementById('adminBannerSave').addEventListener('click', async ()=>{
     const msg = document.getElementById('adminBannerInput').value.trim();
     const icon = document.getElementById('adminBannerIcon').value;
     const statusEl = document.getElementById('adminBannerStatus');
+    const btn = document.getElementById('adminBannerSave');
     if(!msg){
       statusEl.textContent = 'Enter a message first, or use Clear banner to remove it.';
       return;
     }
-    localStorage.setItem('learn-admin-banner-message', msg);
-    localStorage.setItem('learn-admin-banner-icon', icon);
-    localStorage.removeItem('learn-admin-banner-dismissed');
-    if(window.refreshSiteBanner) window.refreshSiteBanner();
-    statusEl.textContent = 'Banner set — it will show on every page until cleared or dismissed.';
-    setTimeout(()=>{ statusEl.textContent = ''; }, 2500);
+    btn.disabled = true;
+    statusEl.textContent = 'Sending to server…';
+    try{
+      const url = BACKEND_URL + '?action=setBanner&password=' + encodeURIComponent(currentPassword())
+        + '&message=' + encodeURIComponent(msg) + '&icon=' + encodeURIComponent(icon);
+      const res = await fetch(url);
+      const data = await res.json();
+      if(data.error){
+        statusEl.textContent = 'Server rejected it: ' + data.error + ' (check the password in your Apps Script matches this admin password)';
+      } else {
+        if(window.refreshSiteBanner) window.refreshSiteBanner();
+        statusEl.textContent = 'Banner set — this now shows on every device, not just this browser.';
+        setTimeout(()=>{ statusEl.textContent = ''; }, 3000);
+      }
+    }catch(err){
+      statusEl.textContent = 'Could not reach the server. Check your internet connection and try again.';
+    }
+    btn.disabled = false;
   });
-  document.getElementById('adminBannerClear').addEventListener('click', ()=>{
-    localStorage.removeItem('learn-admin-banner-message');
-    localStorage.removeItem('learn-admin-banner-icon');
-    localStorage.removeItem('learn-admin-banner-dismissed');
-    document.getElementById('adminBannerInput').value = '';
-    if(window.refreshSiteBanner) window.refreshSiteBanner();
+  document.getElementById('adminBannerClear').addEventListener('click', async ()=>{
     const statusEl = document.getElementById('adminBannerStatus');
-    statusEl.textContent = 'Banner cleared.';
-    setTimeout(()=>{ statusEl.textContent = ''; }, 2000);
+    const btn = document.getElementById('adminBannerClear');
+    btn.disabled = true;
+    statusEl.textContent = 'Clearing…';
+    try{
+      const url = BACKEND_URL + '?action=clearBanner&password=' + encodeURIComponent(currentPassword());
+      const res = await fetch(url);
+      const data = await res.json();
+      if(data.error){
+        statusEl.textContent = 'Server rejected it: ' + data.error;
+      } else {
+        document.getElementById('adminBannerInput').value = '';
+        if(window.refreshSiteBanner) window.refreshSiteBanner();
+        statusEl.textContent = 'Banner cleared on all devices.';
+        setTimeout(()=>{ statusEl.textContent = ''; }, 2000);
+      }
+    }catch(err){
+      statusEl.textContent = 'Could not reach the server. Check your internet connection and try again.';
+    }
+    btn.disabled = false;
   });
 
   showLogin();
