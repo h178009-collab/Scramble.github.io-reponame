@@ -1306,19 +1306,24 @@ function pageParty(){
   </div>
   <button class="notes-btn" id="partyLeaveBtn" style="margin-bottom:24px;">Leave Party</button>
 
-  <h3 class="sub-h">Submit a time</h3>
-  <div style="display:flex; gap:8px; max-width:420px; margin-bottom:8px; flex-wrap:wrap;">
-    <select id="partySubmitPuzzle" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px;">
-      <option value="2x2x2">2x2</option>
-      <option value="3x3x3" selected>3x3</option>
-      <option value="4x4x4">4x4</option>
-      <option value="Pyraminx">Pyraminx</option>
-      <option value="Skewb">Skewb</option>
-      <option value="Megaminx">Megaminx</option>
-      <option value="Square-1">Square-1</option>
-    </select>
-    <input type="text" id="partySubmitTime" placeholder="e.g. 12.45" style="flex:1; min-width:100px; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px;">
-    <button class="notes-btn primary" id="partySubmitBtn">Submit</button>
+  <h3 class="sub-h">Solve</h3>
+  <select id="partySubmitPuzzle" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px; margin-bottom:12px;">
+    <option value="2x2x2">2x2</option>
+    <option value="3x3x3" selected>3x3</option>
+    <option value="4x4x4">4x4</option>
+    <option value="Pyraminx">Pyraminx</option>
+    <option value="Skewb">Skewb</option>
+    <option value="Megaminx">Megaminx</option>
+    <option value="Square-1">Square-1</option>
+  </select>
+  <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:24px; max-width:420px; text-align:center; margin-bottom:8px;">
+    <div id="partyStopwatchReadout" style="font-family:var(--font-display); font-size:42px; font-weight:800; color:var(--text); margin-bottom:16px;">0.00</div>
+    <div style="display:flex; gap:8px; justify-content:center;">
+      <button class="notes-btn primary" id="partyStopwatchStart">Start</button>
+      <button class="notes-btn" id="partyStopwatchStop" style="display:none;">Stop</button>
+      <button class="notes-btn" id="partyStopwatchRetry" style="display:none;">Retry</button>
+      <button class="notes-btn primary" id="partySubmitBtn" style="display:none;">Submit This Time</button>
+    </div>
   </div>
   <div id="partySubmitStatus" style="font-size:12px; color:var(--text-faint); margin-bottom:24px;"></div>
 
@@ -1619,6 +1624,7 @@ function renderPageNav(id){
 const TIMER_STORE_KEY = 'sub-timer-data-v2';
 let timerFrameRef = null;
 let partyPollTimer = null;
+let partyStopwatchRaf = null;
 
 function sendTimerInit(){
   if(!timerFrameRef) return;
@@ -1765,6 +1771,7 @@ document.getElementById('importAllFile').addEventListener('change', (e)=>{
 
 function renderPage(id){
   if(partyPollTimer){ clearInterval(partyPollTimer); partyPollTimer = null; }
+  if(partyStopwatchRaf){ cancelAnimationFrame(partyStopwatchRaf); partyStopwatchRaf = null; }
   if(id === 'timer'){
     main.className = 'main flush';
     main.innerHTML = '<iframe id="timerFrame" title="Sub cube timer"></iframe>';
@@ -2169,33 +2176,83 @@ function wirePartyPage(){
     }catch(err){}
   });
 
+  let swRunning = false, swStart = 0, swCapturedMs = null;
+  const swReadout = document.getElementById('partyStopwatchReadout');
+  const swStartBtn = document.getElementById('partyStopwatchStart');
+  const swStopBtn = document.getElementById('partyStopwatchStop');
+  const swRetryBtn = document.getElementById('partyStopwatchRetry');
+  const swSubmitBtn = document.getElementById('partySubmitBtn');
+
+  function fmtStopwatch(ms){
+    return (ms/1000).toFixed(2);
+  }
+  function swTick(){
+    if(!swRunning) return;
+    swReadout.textContent = fmtStopwatch(performance.now() - swStart);
+    partyStopwatchRaf = requestAnimationFrame(swTick);
+  }
+  swStartBtn.addEventListener('click', ()=>{
+    swRunning = true;
+    swStart = performance.now();
+    swReadout.textContent = '0.00';
+    swStartBtn.style.display = 'none';
+    swStopBtn.style.display = '';
+    swRetryBtn.style.display = 'none';
+    swSubmitBtn.style.display = 'none';
+    document.getElementById('partySubmitStatus').textContent = '';
+    swTick();
+  });
+  swStopBtn.addEventListener('click', ()=>{
+    swRunning = false;
+    if(partyStopwatchRaf) cancelAnimationFrame(partyStopwatchRaf);
+    swCapturedMs = performance.now() - swStart;
+    swReadout.textContent = fmtStopwatch(swCapturedMs);
+    swStopBtn.style.display = 'none';
+    swRetryBtn.style.display = '';
+    swSubmitBtn.style.display = '';
+  });
+  swRetryBtn.addEventListener('click', ()=>{
+    swCapturedMs = null;
+    swReadout.textContent = '0.00';
+    swStartBtn.style.display = '';
+    swRetryBtn.style.display = 'none';
+    swSubmitBtn.style.display = 'none';
+    document.getElementById('partySubmitStatus').textContent = '';
+  });
+
   document.getElementById('partySubmitBtn').addEventListener('click', async ()=>{
     const puzzle = document.getElementById('partySubmitPuzzle').value;
-    const timeVal = document.getElementById('partySubmitTime').value.trim();
     const statusEl = document.getElementById('partySubmitStatus');
-    const parsed = parseFloat(timeVal);
-    if(!timeVal || isNaN(parsed) || parsed <= 0){
-      statusEl.textContent = 'Enter a valid time in seconds (e.g. 12.45).';
+    if(swCapturedMs == null){
+      statusEl.textContent = 'Start and stop the stopwatch first.';
       return;
     }
+    const seconds = swCapturedMs / 1000;
+    swSubmitBtn.disabled = true;
     statusEl.textContent = 'Submitting…';
     try{
       const url = BACKEND_URL + '?action=submitTime&code=' + encodeURIComponent(code)
         + '&name=' + encodeURIComponent(getPartyName()) + '&puzzle=' + encodeURIComponent(puzzle)
-        + '&time=' + encodeURIComponent(parsed);
+        + '&time=' + encodeURIComponent(seconds);
       const res = await fetch(url);
       const data = await res.json();
       if(data.error){
         statusEl.textContent = 'Error: ' + data.error;
       } else {
         statusEl.textContent = 'Submitted!';
-        document.getElementById('partySubmitTime').value = '';
+        swCapturedMs = null;
+        swReadout.textContent = '0.00';
+        swStartBtn.style.display = '';
+        swStopBtn.style.display = 'none';
+        swRetryBtn.style.display = 'none';
+        swSubmitBtn.style.display = 'none';
         setTimeout(()=>{ statusEl.textContent = ''; }, 1500);
         loadLeaderboard();
       }
     }catch(err){
       statusEl.textContent = 'Could not reach the server.';
     }
+    swSubmitBtn.disabled = false;
   });
 
   function fmtSec(s){
