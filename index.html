@@ -356,6 +356,7 @@
     <div class="nav-item" data-page="skewb"><span class="dot" style="background:#c15fd6"></span>Skewb</div>
     <div class="nav-item" data-page="megaminx"><span class="dot" style="background:#e0668e"></span>Megaminx</div>
     <div class="nav-item" data-page="square1"><span class="dot" style="background:#4a7fd6"></span>Square-1</div>
+    <div class="nav-item" data-page="clock"><span class="dot" style="background:#2dd4bf"></span>Clock</div>
     <div class="nav-group-title">&nbsp;</div>
     <div class="nav-item" data-page="notes"><span class="dot" style="background:#4a7fd6"></span>Notes</div>
     <div class="nav-item" data-page="favorites"><span class="dot" style="background:var(--gold)"></span>Favorites</div>
@@ -1164,6 +1165,57 @@ function pageSquare1(){
   `;
 }
 
+function pageClock(){
+  const beginner = `
+  <p>The Clock is genuinely different from every other puzzle here — no algorithms to memorize, just pins, dials, and 18 tiny clock faces to line up.</p>
+  ${calloutBlock("<b>Recommended puzzle:</b> a magnetic clock (e.g. QiYi/MoYu magnetic Clock) — the magnets snap pins firmly into place, which matters a lot here since a pin popping mid-turn can undo your progress instantly.")}
+
+  <h3 class="sub-h">Terminology</h3>
+  <p>The Clock has 9 clock faces on each side (18 total), but only <b>14 are independent</b> — the 4 corner clocks are shared between both sides, so solving one side's corner also affects the other.</p>
+  ${stepBlock("", "Dials", "The 4 knobs in the corners. Turning a dial moves whichever clock faces are currently connected to it.")}
+  ${stepBlock("", "Pins", "4 pins, one per corner (upper-left, upper-right, lower-left, lower-right). Each pin can be pushed up or down, and determines which clocks the nearest dial actually moves. A pin that's up on one side is automatically down on the other.")}
+  ${stepBlock("", "Wheels", "The internal gears connecting pins to dials — you never touch these directly, but they're why pushing a pin changes what a dial controls.")}
+
+  <h3 class="sub-h">Notation</h3>
+  <p>Clock notation describes which pins are up and how far to turn the dial next to them.</p>
+  ${algLine("UL / UR / DL / DR", "one single pin up (upper-left, upper-right, lower-left, lower-right)")}
+  ${algLine("U / D / L / R", "both pins on that side up (e.g. U = both top pins up)")}
+  ${algLine("ALL", "all 4 pins up")}
+  ${algLine("+ / −", "clockwise / counterclockwise, followed by a number of hours")}
+  ${algLine("y2", "flip the whole puzzle over to work on the other side")}
+  ${calloutBlock("Any pins not mentioned are assumed to be down. For example \"UL 3+\" means: push only the upper-left pin up, turn its dial 3 hours clockwise.")}
+
+  <h3 class="sub-h">Beginner method — solve one side at a time</h3>
+  ${stepBlock("1", "Build the cross", "Push up ONE pin at a time. With that pin up, turn its dial until the center clock matches the edge clock nearest to it. Repeat for all 4 pins, one at a time, going around — each time matching the center to a new edge.")}
+  ${stepBlock("2", "Square up the cross", "Once all 4 edges match the center, push ALL pins up and turn any dial until the whole cross points to 12 o'clock together.")}
+  ${stepBlock("3", "Flip and repeat", "Use y2 to flip the puzzle over. Repeat steps 1 and 2 on this side too — you now have both sides' crosses solved.")}
+  ${stepBlock("4", "Solve the corners", "Push exactly ONE pin down, keeping the other 3 up. Turn any dial — this moves the 3 clocks connected to the still-up pins while leaving the one under the down pin fixed. Line up each corner to match its neighbors this way, one at a time, on both sides.")}
+  ${stepBlock("5", "Check both sides", "Flip the puzzle over one more time to confirm the second side is fully solved too — Clock scrambles affect both sides at once, so it's easy to finish one side and forget to double check the other.")}
+  `;
+
+  const advanced = `
+  <p>Once the beginner method feels natural, speed on Clock comes almost entirely from efficiency of movement, not new techniques — there's no bigger algorithm set waiting for you here.</p>
+  ${calloutBlock("<b>Recommended puzzle once you're faster:</b> a competition-grade magnetic Clock with adjustable dial tension — being able to tune how much resistance the dials have lets you dial in a feel that suits your turning style, which matters more on Clock than almost any other event.")}
+
+  <h3 class="sub-h">Minimize pin changes</h3>
+  <p>Every time you change which pins are up, that's time not spent turning. The single biggest speed gain beyond the beginner method is planning your pin sequence in advance so you touch the pins as few times as possible, rather than reacting one step at a time.</p>
+  ${stepBlock("", "Look ahead during inspection", "WCA gives you 15 seconds of inspection before the clock starts. Use it to plan your entire pin sequence for the cross stage before you touch anything — knowing the order in advance is where most of the time saving actually comes from.")}
+  ${stepBlock("", "Combine cross and corner setup", "Advanced solvers often solve a corner clock during the same pin configuration used for an adjacent edge, rather than treating cross and corners as two fully separate passes — this cuts down on redundant pin flips.")}
+  ${stepBlock("", "Track both sides at once", "Since 4 of the 9 clocks on each side are shared corners, a move on one side always has some effect on the other. Strong Clock solvers keep a mental model of both sides simultaneously instead of solving one, flipping, and starting fresh.")}
+
+  <h3 class="sub-h">Notation recap for fast reading</h3>
+  ${algLine("U 2+", "both top pins up, turn 2 hours clockwise")}
+  ${algLine("DR 4−", "only bottom-right pin up, turn 4 hours counterclockwise")}
+  ${algLine("ALL 6+ y2 ALL 6+", "solve the cross to 12 on one side, flip, repeat on the other")}
+  `;
+
+  return `
+  <div class="puzzle-header"><div class="puzzle-swatch" style="background:#2dd4bf"></div><h1 class="page-title" style="margin:0;">Clock</h1></div>
+  <p class="page-sub">No algorithms — just pins, dials, and precise timing.</p>
+  ${methodTabs("clock", beginner, advanced, "Beginner", "Advanced")}
+  `;
+}
+
 function pageNotes(){
   return `
   <h1 class="page-title">Notes</h1>
@@ -1316,6 +1368,11 @@ function pageParty(){
     <option value="Megaminx">Megaminx</option>
     <option value="Square-1">Square-1</option>
   </select>
+  <div style="display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; max-width:420px; margin-bottom:12px;">
+    <span id="partyScrambleText" style="flex:1; font-family:var(--font-display); font-size:13px; color:var(--text-dim); line-height:1.6;"></span>
+    <button class="icon-btn small" id="partyScrambleRefresh" title="New scramble">↻</button>
+  </div>
+  <p style="font-size:11px; color:var(--text-faint); margin:0 0 8px; max-width:420px;">Hold Space to ready up, release to start — tap any key to stop. Or use the buttons below.</p>
   <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:24px; max-width:420px; text-align:center; margin-bottom:8px;">
     <div id="partyStopwatchReadout" style="font-family:var(--font-display); font-size:42px; font-weight:800; color:var(--text); margin-bottom:16px;">0.00</div>
     <div style="display:flex; gap:8px; justify-content:center;">
@@ -1453,6 +1510,7 @@ const PAGES = {
   skewb: pageSkewb,
   megaminx: pageMegaminx,
   square1: pageSquare1,
+  clock: pageClock,
   notes: pageNotes,
   favorites: pageFavorites,
   competitions: pageCompetitions,
@@ -1591,7 +1649,7 @@ const CUBE_FUN_FACTS = [
   });
 })();
 
-const PAGE_ORDER = ['notation','fingertricks','2x2','3x3','4x4','bignxn','pyraminx','skewb','megaminx','square1'];
+const PAGE_ORDER = ['notation','fingertricks','2x2','3x3','4x4','bignxn','pyraminx','skewb','megaminx','square1','clock'];
 
 function trackRecentlyViewed(id){
   if(id === 'timer' || id === 'favorites' || id === 'credits') return;
@@ -1625,6 +1683,7 @@ const TIMER_STORE_KEY = 'sub-timer-data-v2';
 let timerFrameRef = null;
 let partyPollTimer = null;
 let partyStopwatchRaf = null;
+let partyKeyHandlers = null;
 
 function sendTimerInit(){
   if(!timerFrameRef) return;
@@ -1772,6 +1831,11 @@ document.getElementById('importAllFile').addEventListener('change', (e)=>{
 function renderPage(id){
   if(partyPollTimer){ clearInterval(partyPollTimer); partyPollTimer = null; }
   if(partyStopwatchRaf){ cancelAnimationFrame(partyStopwatchRaf); partyStopwatchRaf = null; }
+  if(partyKeyHandlers){
+    window.removeEventListener('keydown', partyKeyHandlers.down);
+    window.removeEventListener('keyup', partyKeyHandlers.up);
+    partyKeyHandlers = null;
+  }
   if(id === 'timer'){
     main.className = 'main flush';
     main.innerHTML = '<iframe id="timerFrame" title="Sub cube timer"></iframe>';
@@ -2176,7 +2240,82 @@ function wirePartyPage(){
     }catch(err){}
   });
 
-  let swRunning = false, swStart = 0, swCapturedMs = null;
+  function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function generatePartyScramble(puzzle){
+    if(puzzle === '2x2x2'){
+      const faces = ['R','U','F'];
+      const suf = ['', "'", '2'];
+      const moves = []; let last = null;
+      while(moves.length < 10){
+        const f = randPick(faces);
+        if(f === last) continue;
+        moves.push(f + randPick(suf)); last = f;
+      }
+      return moves.join(' ');
+    }
+    if(puzzle === '3x3x3' || puzzle === '4x4x4'){
+      const isWide = puzzle === '4x4x4';
+      const faces = isWide ? ['U','D','L','R','F','B','Uw','Dw','Lw','Rw','Fw','Bw'] : ['U','D','L','R','F','B'];
+      const suf = ['', "'", '2'];
+      const len = isWide ? 40 : 20;
+      const moves = []; let last = null;
+      while(moves.length < len){
+        const f = randPick(faces);
+        if(f === last) continue;
+        moves.push(f + randPick(suf)); last = f;
+      }
+      return moves.join(' ');
+    }
+    if(puzzle === 'Pyraminx'){
+      const faces = ['U','L','R','B'];
+      const suf = ["", "'"];
+      const moves = []; let last = null;
+      while(moves.length < 8){
+        const f = randPick(faces);
+        if(f === last) continue;
+        moves.push(f + randPick(suf)); last = f;
+      }
+      const tips = ['u','l','r','b'].filter(()=>Math.random()<0.6).map(t=> t + randPick(["","'"]));
+      return moves.join(' ') + (tips.length ? ' ' + tips.join(' ') : '');
+    }
+    if(puzzle === 'Skewb'){
+      const faces = ['R','L','U','B'];
+      const suf = ["", "'"];
+      const moves = []; let last = null;
+      while(moves.length < 9){
+        const f = randPick(faces);
+        if(f === last) continue;
+        moves.push(f + randPick(suf)); last = f;
+      }
+      return moves.join(' ');
+    }
+    if(puzzle === 'Megaminx'){
+      const moves = [];
+      for(let i=0;i<7;i++){
+        moves.push('R' + randPick(['++','--']) + ' D' + randPick(['++','--']));
+      }
+      moves.push('U');
+      return moves.join(' ');
+    }
+    // Square-1
+    const parts = [];
+    for(let i=0;i<12;i++){
+      const a = Math.floor(Math.random()*7) - 3;
+      const b = Math.floor(Math.random()*7) - 3;
+      parts.push('(' + a + ',' + b + ')');
+    }
+    return parts.join(' / ');
+  }
+
+  function refreshPartyScramble(){
+    const puzzle = document.getElementById('partySubmitPuzzle').value;
+    document.getElementById('partyScrambleText').textContent = generatePartyScramble(puzzle);
+  }
+  document.getElementById('partySubmitPuzzle').addEventListener('change', refreshPartyScramble);
+  document.getElementById('partyScrambleRefresh').addEventListener('click', refreshPartyScramble);
+  refreshPartyScramble();
+
+  let swRunning = false, swStart = 0, swCapturedMs = null, swHeld = false, swHoldTimer = null, swReady = false;
   const swReadout = document.getElementById('partyStopwatchReadout');
   const swStartBtn = document.getElementById('partyStopwatchStart');
   const swStopBtn = document.getElementById('partyStopwatchStop');
@@ -2191,8 +2330,10 @@ function wirePartyPage(){
     swReadout.textContent = fmtStopwatch(performance.now() - swStart);
     partyStopwatchRaf = requestAnimationFrame(swTick);
   }
-  swStartBtn.addEventListener('click', ()=>{
+  function startSolve(){
+    if(swRunning) return;
     swRunning = true;
+    swReady = false;
     swStart = performance.now();
     swReadout.textContent = '0.00';
     swStartBtn.style.display = 'none';
@@ -2201,8 +2342,9 @@ function wirePartyPage(){
     swSubmitBtn.style.display = 'none';
     document.getElementById('partySubmitStatus').textContent = '';
     swTick();
-  });
-  swStopBtn.addEventListener('click', ()=>{
+  }
+  function stopSolve(){
+    if(!swRunning) return;
     swRunning = false;
     if(partyStopwatchRaf) cancelAnimationFrame(partyStopwatchRaf);
     swCapturedMs = performance.now() - swStart;
@@ -2210,7 +2352,35 @@ function wirePartyPage(){
     swStopBtn.style.display = 'none';
     swRetryBtn.style.display = '';
     swSubmitBtn.style.display = '';
-  });
+  }
+  swStartBtn.addEventListener('click', startSolve);
+  swStopBtn.addEventListener('click', stopSolve);
+
+  function partyKeydown(e){
+    if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if(swRunning){
+      stopSolve();
+      return;
+    }
+    if(e.code === 'Space' && !swHeld && swStartBtn.style.display !== 'none'){
+      swHeld = true;
+      swReadout.style.color = 'var(--text-faint)';
+      swHoldTimer = setTimeout(()=>{ swReady = true; swReadout.style.color = 'var(--green)'; }, 300);
+    }
+  }
+  function partyKeyup(e){
+    if(e.code === 'Space' && swHeld){
+      swHeld = false;
+      clearTimeout(swHoldTimer);
+      swReadout.style.color = 'var(--text)';
+      if(swReady) startSolve();
+      swReady = false;
+    }
+  }
+  window.addEventListener('keydown', partyKeydown);
+  window.addEventListener('keyup', partyKeyup);
+  partyKeyHandlers = { down: partyKeydown, up: partyKeyup };
+
   swRetryBtn.addEventListener('click', ()=>{
     swCapturedMs = null;
     swReadout.textContent = '0.00';
@@ -2220,6 +2390,11 @@ function wirePartyPage(){
     document.getElementById('partySubmitStatus').textContent = '';
   });
 
+  const PARTY_MIN_PLAUSIBLE_SECONDS = {
+    '2x2x2': 0.4, '3x3x3': 2.0, '4x4x4': 4.0, 'Pyraminx': 0.7,
+    'Skewb': 0.7, 'Megaminx': 15, 'Square-1': 2.5
+  };
+
   document.getElementById('partySubmitBtn').addEventListener('click', async ()=>{
     const puzzle = document.getElementById('partySubmitPuzzle').value;
     const statusEl = document.getElementById('partySubmitStatus');
@@ -2228,6 +2403,14 @@ function wirePartyPage(){
       return;
     }
     const seconds = swCapturedMs / 1000;
+    const floor = PARTY_MIN_PLAUSIBLE_SECONDS[puzzle] || 0;
+    if(seconds < floor){
+      const proceed = confirm(
+        seconds.toFixed(2) + 's is unusually fast for ' + puzzle + ' — well below what a real solve typically takes.\n\n' +
+        'If this was genuine, click OK to submit anyway. It will still show a flag on the leaderboard so others can see it.'
+      );
+      if(!proceed) return;
+    }
     swSubmitBtn.disabled = true;
     statusEl.textContent = 'Submitting…';
     try{
@@ -2246,6 +2429,7 @@ function wirePartyPage(){
         swStopBtn.style.display = 'none';
         swRetryBtn.style.display = 'none';
         swSubmitBtn.style.display = 'none';
+        refreshPartyScramble();
         setTimeout(()=>{ statusEl.textContent = ''; }, 1500);
         loadLeaderboard();
       }
@@ -2281,12 +2465,16 @@ function wirePartyPage(){
       });
       let html = '';
       Object.keys(byPuzzle).forEach(puzzle=>{
+        const floor = PARTY_MIN_PLAUSIBLE_SECONDS[puzzle] || 0;
         const ranked = Object.entries(byPuzzle[puzzle]).sort((a,b)=>a[1]-b[1]);
         html += '<div class="drawer-section-title">' + puzzle + '</div>';
-        html += ranked.map(([name,t],i)=> `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px;">
+        html += ranked.map(([name,t],i)=> {
+          const suspicious = t < floor;
+          return `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px;">
           <span style="color:var(--text-dim);">${i+1}. ${name.replace(/</g,'&lt;')}</span>
-          <span style="color:${i===0?'var(--accent)':'var(--text-dim)'}; font-weight:${i===0?'800':'400'};">${fmtSec(t)}s</span>
-        </div>`).join('');
+          <span style="color:${suspicious ? 'var(--red)' : (i===0?'var(--accent)':'var(--text-dim)')}; font-weight:${i===0?'800':'400'};" ${suspicious ? 'title="This time is well below what a real solve typically takes"' : ''}>${suspicious ? '⚠ ' : ''}${fmtSec(t)}s</span>
+        </div>`;
+        }).join('');
       });
       el.innerHTML = html;
     }catch(err){
