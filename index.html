@@ -1356,7 +1356,11 @@ function pageParty(){
     <span id="partyYourName" style="font-size:13px; color:var(--text-dim);"></span>
     <button class="icon-btn small" id="partyRenameBtn" title="Change your name for this party">✎</button>
   </div>
-  <button class="notes-btn" id="partyLeaveBtn" style="margin-bottom:24px;">Leave Party</button>
+  <div style="display:flex; gap:8px; margin-bottom:24px;">
+    <button class="notes-btn" id="partyLeaveBtn">Leave Party</button>
+    <button class="notes-btn" id="partyEndBtn" style="display:none; border-color:var(--red); color:var(--red);">End Competition</button>
+  </div>
+  <div id="partyEndedBanner" style="display:none; background:rgba(224,69,90,.1); border:1px solid var(--red); border-radius:10px; padding:12px 14px; margin-bottom:16px; font-size:13px; color:var(--red);">This party has ended — no more solves can be submitted.</div>
 
   <h3 class="sub-h">Solve</h3>
   <select id="partySubmitPuzzle" style="background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:9px 11px; font-size:13px; margin-bottom:12px;">
@@ -2268,16 +2272,19 @@ function wirePartyPage(){
   function getPartyName(){
     try{ return localStorage.getItem('learn-party-name') || ''; }catch(e){ return ''; }
   }
-  function setPartyState(code, name){
+  function setPartyState(code, name, isCreator){
     try{
       localStorage.setItem('learn-party-code', code);
       localStorage.setItem('learn-party-name', name);
+      if(isCreator) localStorage.setItem('learn-party-is-creator', 'true');
+      else localStorage.removeItem('learn-party-is-creator');
     }catch(e){}
   }
   function clearPartyState(){
     try{
       localStorage.removeItem('learn-party-code');
       localStorage.removeItem('learn-party-name');
+      localStorage.removeItem('learn-party-is-creator');
     }catch(e){}
   }
 
@@ -2299,7 +2306,7 @@ function wirePartyPage(){
         if(data.error){
           statusEl.textContent = 'Error: ' + data.error;
         } else {
-          setPartyState(data.code, data.name);
+          setPartyState(data.code, data.name, true);
           renderPage('party');
         }
       }catch(err){
@@ -2324,7 +2331,7 @@ function wirePartyPage(){
         if(data.error){
           statusEl.textContent = 'Error: ' + data.error;
         } else {
-          setPartyState(data.code, data.name);
+          setPartyState(data.code, data.name, false);
           renderPage('party');
         }
       }catch(err){
@@ -2339,6 +2346,30 @@ function wirePartyPage(){
 
   const code = localStorage.getItem('learn-party-code');
   document.getElementById('partyYourName').textContent = 'You are: ' + getPartyName();
+
+  const isCreator = localStorage.getItem('learn-party-is-creator') === 'true';
+  const endBtn = document.getElementById('partyEndBtn');
+  if(isCreator) endBtn.style.display = '';
+  endBtn.addEventListener('click', async ()=>{
+    if(!confirm('End this competition for everyone? No more solves will be accepted once this is done — this cannot be undone.')) return;
+    endBtn.disabled = true;
+    try{
+      const url = BACKEND_URL + '?action=endParty&code=' + encodeURIComponent(code);
+      const res = await fetch(url);
+      const data = await res.json();
+      if(!data.error){
+        applyEndedState();
+      }
+    }catch(err){}
+    endBtn.disabled = false;
+  });
+
+  function applyEndedState(){
+    document.getElementById('partyEndedBanner').style.display = '';
+    endBtn.style.display = 'none';
+    document.getElementById('partyStopwatchStart').disabled = true;
+    document.getElementById('partySubmitPuzzle').disabled = true;
+  }
 
   leaveBtn.addEventListener('click', ()=>{
     if(!confirm('Leave this party? You can rejoin later with the same code.')) return;
@@ -2355,7 +2386,8 @@ function wirePartyPage(){
       const res = await fetch(url);
       const data = await res.json();
       if(!data.error){
-        setPartyState(code, data.name);
+        const wasCreator = localStorage.getItem('learn-party-is-creator') === 'true';
+        setPartyState(code, data.name, wasCreator);
         document.getElementById('partyYourName').textContent = 'You are: ' + data.name;
         loadLeaderboard();
       }
@@ -2589,6 +2621,9 @@ function wirePartyPage(){
     try{
       const res = await fetch(BACKEND_URL + '?action=getParty&code=' + encodeURIComponent(code));
       const data = await res.json();
+      if(data.ended && document.getElementById('partyEndedBanner').style.display === 'none'){
+        applyEndedState();
+      }
       if(data.error || !data.solves){
         el.innerHTML = '<div class="empty-note">Could not load the leaderboard.</div>';
         return;
@@ -2609,17 +2644,26 @@ function wirePartyPage(){
       let html = '';
       Object.keys(byPuzzle).forEach(puzzle=>{
         const floor = PARTY_MIN_PLAUSIBLE_SECONDS[puzzle] || 0;
-        const ranked = Object.entries(byPuzzle[puzzle]).sort((a,b)=>a[1].best-b[1].best);
+        const allEntries = Object.entries(byPuzzle[puzzle]);
+        const qualified = allEntries.filter(([,info]) => info.count >= 5).sort((a,b)=>a[1].best-b[1].best);
+        const inProgress = allEntries.filter(([,info]) => info.count < 5);
         html += '<div class="drawer-section-title">' + puzzle + '</div>';
-        html += ranked.map(([name,info],i)=> {
+        if(!qualified.length){
+          html += '<div class="empty-note" style="padding:8px 0;">Nobody has reached 5 solves yet — the leaderboard fills in once someone does.</div>';
+        }
+        html += qualified.map(([name,info],i)=> {
           const t = info.best;
           const suspicious = t < floor;
-          const isPb = info.count >= 5;
           return `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px;">
-          <span style="color:var(--text-dim);">${i+1}. ${name.replace(/</g,'&lt;')}${isPb ? ' <span title="Personal best over 5+ solves" style="color:var(--gold);">★</span>' : ''}</span>
+          <span style="color:var(--text-dim);">${i+1}. ${name.replace(/</g,'&lt;')} <span title="Personal best over 5+ solves" style="color:var(--gold);">★</span></span>
           <span style="color:${suspicious ? 'var(--red)' : (i===0?'var(--accent)':'var(--text-dim)')}; font-weight:${i===0?'800':'400'};" ${suspicious ? 'title="This time is well below what a real solve typically takes"' : ''}>${suspicious ? '⚠ ' : ''}${fmtSec(t)}s</span>
         </div>`;
         }).join('');
+        if(inProgress.length){
+          html += '<div style="font-size:11px; color:var(--text-faint); padding:6px 0;">' + inProgress.map(([name,info]) =>
+            name.replace(/</g,'&lt;') + ' (' + info.count + '/5 solves)'
+          ).join(' · ') + '</div>';
+        }
       });
       el.innerHTML = html;
     }catch(err){
