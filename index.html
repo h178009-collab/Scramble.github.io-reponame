@@ -2422,7 +2422,24 @@ function wirePartyPage(){
       if(data.error){
         statusEl.textContent = 'Error: ' + data.error;
       } else {
-        statusEl.textContent = 'Submitted!';
+        let pbMessage = '';
+        try{
+          const partyRes = await fetch(BACKEND_URL + '?action=getParty&code=' + encodeURIComponent(code));
+          const partyData = await partyRes.json();
+          if(partyData.solves){
+            const myTimes = partyData.solves
+              .filter(s => s.name === getPartyName() && s.puzzle === puzzle)
+              .map(s => parseFloat(s.time))
+              .filter(t => !isNaN(t));
+            if(myTimes.length >= 5){
+              const best = Math.min(...myTimes);
+              if(Math.abs(best - seconds) < 0.005){
+                pbMessage = ' 🏆 New PB!';
+              }
+            }
+          }
+        }catch(e){}
+        statusEl.textContent = 'Submitted!' + pbMessage;
         swCapturedMs = null;
         swReadout.textContent = '0.00';
         swStartBtn.style.display = '';
@@ -2430,7 +2447,7 @@ function wirePartyPage(){
         swRetryBtn.style.display = 'none';
         swSubmitBtn.style.display = 'none';
         refreshPartyScramble();
-        setTimeout(()=>{ statusEl.textContent = ''; }, 1500);
+        setTimeout(()=>{ statusEl.textContent = ''; }, pbMessage ? 3000 : 1500);
         loadLeaderboard();
       }
     }catch(err){
@@ -2461,17 +2478,21 @@ function wirePartyPage(){
         if(!byPuzzle[s.puzzle]) byPuzzle[s.puzzle] = {};
         const t = parseFloat(s.time);
         if(isNaN(t)) return;
-        if(!byPuzzle[s.puzzle][s.name] || t < byPuzzle[s.puzzle][s.name]) byPuzzle[s.puzzle][s.name] = t;
+        if(!byPuzzle[s.puzzle][s.name]) byPuzzle[s.puzzle][s.name] = { best: t, count: 0 };
+        byPuzzle[s.puzzle][s.name].count++;
+        if(t < byPuzzle[s.puzzle][s.name].best) byPuzzle[s.puzzle][s.name].best = t;
       });
       let html = '';
       Object.keys(byPuzzle).forEach(puzzle=>{
         const floor = PARTY_MIN_PLAUSIBLE_SECONDS[puzzle] || 0;
-        const ranked = Object.entries(byPuzzle[puzzle]).sort((a,b)=>a[1]-b[1]);
+        const ranked = Object.entries(byPuzzle[puzzle]).sort((a,b)=>a[1].best-b[1].best);
         html += '<div class="drawer-section-title">' + puzzle + '</div>';
-        html += ranked.map(([name,t],i)=> {
+        html += ranked.map(([name,info],i)=> {
+          const t = info.best;
           const suspicious = t < floor;
+          const isPb = info.count >= 5;
           return `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:13px;">
-          <span style="color:var(--text-dim);">${i+1}. ${name.replace(/</g,'&lt;')}</span>
+          <span style="color:var(--text-dim);">${i+1}. ${name.replace(/</g,'&lt;')}${isPb ? ' <span title="Personal best over 5+ solves" style="color:var(--gold);">★</span>' : ''}</span>
           <span style="color:${suspicious ? 'var(--red)' : (i===0?'var(--accent)':'var(--text-dim)')}; font-weight:${i===0?'800':'400'};" ${suspicious ? 'title="This time is well below what a real solve typically takes"' : ''}>${suspicious ? '⚠ ' : ''}${fmtSec(t)}s</span>
         </div>`;
         }).join('');
